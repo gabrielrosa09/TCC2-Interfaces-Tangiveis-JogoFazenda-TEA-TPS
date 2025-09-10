@@ -10,7 +10,6 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        # Gerenciador de estados
         self.state_manager = StateManager()
         self.state_manager.add_state("menu", MenuState(self))
 
