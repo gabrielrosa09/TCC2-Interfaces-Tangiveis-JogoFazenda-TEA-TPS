@@ -1,0 +1,1 @@
+# Lógica de detecção (ex: mãos, rosto, objetos)

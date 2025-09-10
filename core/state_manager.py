@@ -1,0 +1,1 @@
+# Gerencia os estados (menu, tutorial, fases, etc.)

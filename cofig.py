@@ -1,0 +1,1 @@
+# Configurações globais (tamanho da tela, FPS, cores, etc.)

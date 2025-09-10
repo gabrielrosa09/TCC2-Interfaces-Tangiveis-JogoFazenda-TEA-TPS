@@ -1,0 +1,1 @@
+# Tela inicial (Iniciar, Tutorial, Sair)
