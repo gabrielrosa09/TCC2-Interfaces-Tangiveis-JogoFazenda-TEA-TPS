@@ -30,6 +30,7 @@ class MenuState:
                             print("Iniciar jogo")
                         elif nome == "tutorial":
                             print("Abrir tutorial")
+                            self.game.state_manager.set_state("tutorial")
                         elif nome == "sair":
                             print("Saindo...")
                             self.game.running = False
