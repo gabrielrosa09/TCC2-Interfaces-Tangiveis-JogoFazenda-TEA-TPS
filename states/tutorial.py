@@ -5,7 +5,7 @@ class TutorialState:
     def __init__(self, game):
         self.game = game
         self.font_title = pygame.font.Font("assets/fonts/vcr.ttf", 40)
-        self.font_text = pygame.font.Font("assets/fonts/vcr.ttf", 24)
+        self.font_text = pygame.font.Font("assets/fonts/vcr.ttf", 30)
 
         self.lines = [
             "",

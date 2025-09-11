@@ -4,7 +4,7 @@ from config import *
 class MenuState:
     def __init__(self, game):
         self.game = game
-        self.font = pygame.font.SysFont(None, 80)
+        self.font = pygame.font.Font("assets/fonts/vcr.ttf", 80)
 
         self.botoes = {
             "iniciar": self.font.render("Iniciar Jogo", True, BRANCO),
