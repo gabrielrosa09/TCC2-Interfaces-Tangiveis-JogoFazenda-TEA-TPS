@@ -3,6 +3,7 @@ from config import *
 from core.state_manager import StateManager
 from states.menu import MenuState
 from states.tutorial import TutorialState
+from states.primeiraFaseState import Fase1State
 
 class Game:
     def __init__(self):
@@ -15,6 +16,7 @@ class Game:
         self.state_manager = StateManager()
         self.state_manager.add_state("menu", MenuState(self))
         self.state_manager.add_state("tutorial", TutorialState(self))
+        self.state_manager.add_state("fase1", Fase1State(self))
 
         self.state_manager.set_state("menu")
 

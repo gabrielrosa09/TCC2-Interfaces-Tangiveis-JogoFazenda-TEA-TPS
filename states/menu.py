@@ -28,6 +28,7 @@ class MenuState:
                     if rect.collidepoint(mouse_pos):
                         if nome == "iniciar":
                             print("Iniciar jogo")
+                            self.game.state_manager.set_state("fase1")
                         elif nome == "tutorial":
                             print("Abrir tutorial")
                             self.game.state_manager.set_state("tutorial")
