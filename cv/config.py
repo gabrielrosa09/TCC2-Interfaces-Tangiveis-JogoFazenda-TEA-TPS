@@ -56,6 +56,7 @@ SUPPORTED_GESTURES = [
 # ================================
 ACTION_COOLDOWN_TIME = 1.0  # segundos
 GESTURE_HISTORY_SIZE = 5
+GESTURE_VALIDATION_TIME = 2.0  # segundos para validar gesto
 
 # ================================
 # GESTOS POR AÇÃO
