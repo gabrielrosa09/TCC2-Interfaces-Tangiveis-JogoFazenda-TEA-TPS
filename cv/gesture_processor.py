@@ -4,10 +4,11 @@ Responsável por processar resultados do MediaPipe e detectar gestos válidos.
 """
 
 import mediapipe as mp
+import time
 from cv.config import (
     MODEL_PATH, NUM_HANDS, MIN_HAND_DETECTION_CONFIDENCE,
     MIN_HAND_PRESENCE_CONFIDENCE, MIN_TRACKING_CONFIDENCE,
-    SUPPORTED_GESTURES
+    SUPPORTED_GESTURES, GESTURE_VALIDATION_TIME, ACTION_COOLDOWN_TIME
 )
 
 
@@ -30,6 +31,10 @@ class GestureProcessor:
         self.current_hand_landmarks = []
         self.current_handedness = []
         self.previous_gestures_state = {}
+        
+        # Rastreamento de tempo para validação de gestos
+        self.gesture_start_times = {}  # {hand_key: (gesture_name, zone_name, start_time)}
+        self.validated_gestures = {}   # {hand_key: (gesture_name, zone_name, validated_time)}
         
         # Configuração do MediaPipe
         self.recognizer = None
@@ -69,6 +74,8 @@ class GestureProcessor:
     def _process_detected_hands(self, result):
         """Processa as mãos detectadas e executa ações se necessário."""
         current_state = {}
+        current_time = time.time()
+        currently_detected_hands = set()
         
         for i, gesture_list in enumerate(result.gestures):
             if gesture_list and result.handedness and result.handedness[i]:
@@ -77,6 +84,7 @@ class GestureProcessor:
                 gesture_name = top_gesture.category_name
                 hand_info = result.handedness[i][0].category_name
                 hand_key = f"{hand_info}_hand"
+                currently_detected_hands.add(hand_key)
                 
                 # Verificar se o gesto é suportado
                 if gesture_name not in SUPPORTED_GESTURES:
@@ -85,20 +93,117 @@ class GestureProcessor:
                 # Detectar zona onde a mão está
                 zone_name = self._detect_hand_zone(result.hand_landmarks[i])
                 
-                # Verificar se deve executar ação
-                if self._should_execute_action(gesture_name, zone_name, hand_key):
-                    if self.action_handler and self.zone_manager:
-                        # Verificar se o gesto é válido para a zona
-                        zone = self.zone_manager.get_zone_by_name(zone_name)
-                        if zone and self.zone_manager.is_gesture_valid_for_zone(gesture_name, zone):
-                            print(f"Executando ação: {gesture_name} | {zone_name} | {hand_info}")
-                            self.action_handler.execute_action(gesture_name, zone_name, hand_info)
+                # Processar validação de gesto com tempo
+                self._process_gesture_validation(gesture_name, zone_name, hand_key, current_time)
                 
                 # Salvar estado atual
                 current_state[hand_key] = (gesture_name, zone_name)
         
+        # Limpar rastreamento de mãos que não estão mais sendo detectadas
+        self._cleanup_undetected_hands(currently_detected_hands)
+        
         # Atualizar estado anterior
         self.previous_gestures_state = current_state.copy()
+    
+    def _cleanup_undetected_hands(self, currently_detected_hands):
+        """
+        Limpa o rastreamento de mãos que não estão mais sendo detectadas.
+        
+        Args:
+            currently_detected_hands (set): Conjunto de mãos atualmente detectadas
+        """
+        # Encontrar mãos que estavam sendo rastreadas mas não estão mais detectadas
+        tracked_hands = set(self.gesture_start_times.keys())
+        hands_to_clean = tracked_hands - currently_detected_hands
+        
+        # Limpar rastreamento das mãos não detectadas
+        for hand_key in hands_to_clean:
+            self._clear_gesture_tracking(hand_key)
+    
+    def _process_gesture_validation(self, gesture_name, zone_name, hand_key, current_time):
+        """
+        Processa a validação de gestos com base no tempo de detecção.
+        
+        Args:
+            gesture_name (str): Nome do gesto detectado
+            zone_name (str): Nome da zona onde o gesto foi detectado
+            hand_key (str): Chave da mão (ex: "Left_hand")
+            current_time (float): Timestamp atual
+        """
+        if not zone_name:
+            # Se não está em uma zona válida, limpar rastreamento
+            self._clear_gesture_tracking(hand_key)
+            return
+        
+        current_state = (gesture_name, zone_name)
+        
+        # Verificar se o gesto mudou
+        if hand_key in self.gesture_start_times:
+            tracked_gesture, tracked_zone, start_time = self.gesture_start_times[hand_key]
+            tracked_state = (tracked_gesture, tracked_zone)
+            
+            if tracked_state != current_state:
+                # Gesto mudou, limpar validações anteriores e reiniciar rastreamento
+                self._clear_gesture_tracking(hand_key)
+                self.gesture_start_times[hand_key] = (gesture_name, zone_name, current_time)
+                return
+        
+        # Se é um novo gesto ou continua o mesmo
+        if hand_key not in self.gesture_start_times:
+            # Novo gesto detectado
+            self.gesture_start_times[hand_key] = (gesture_name, zone_name, current_time)
+            return
+        
+        # Verificar se o gesto foi mantido por tempo suficiente
+        start_time = self.gesture_start_times[hand_key][2]
+        elapsed_time = current_time - start_time
+        
+        if elapsed_time >= GESTURE_VALIDATION_TIME:
+            # Gesto validado! Verificar se já foi executado
+            validated_key = f"{hand_key}_{gesture_name}_{zone_name}"
+            
+            if validated_key not in self.validated_gestures:
+                # Primeira vez que este gesto é validado
+                self.validated_gestures[validated_key] = current_time
+                self._execute_validated_gesture(gesture_name, zone_name, hand_key)
+            else:
+                # Gesto já foi validado recentemente, verificar cooldown
+                last_validated = self.validated_gestures[validated_key]
+                if current_time - last_validated >= ACTION_COOLDOWN_TIME:
+                    self.validated_gestures[validated_key] = current_time
+                    self._execute_validated_gesture(gesture_name, zone_name, hand_key)
+    
+    def _execute_validated_gesture(self, gesture_name, zone_name, hand_key):
+        """
+        Executa um gesto que foi validado por 2 segundos.
+        
+        Args:
+            gesture_name (str): Nome do gesto
+            zone_name (str): Nome da zona
+            hand_key (str): Chave da mão
+        """
+        if self.action_handler and self.zone_manager:
+            # Verificar se o gesto é válido para a zona
+            zone = self.zone_manager.get_zone_by_name(zone_name)
+            if zone and self.zone_manager.is_gesture_valid_for_zone(gesture_name, zone):
+                hand_info = hand_key.replace("_hand", "")
+                print(f"Executando ação validada: {gesture_name} | {zone_name} | {hand_info}")
+                self.action_handler.execute_action(gesture_name, zone_name, hand_info)
+    
+    def _clear_gesture_tracking(self, hand_key):
+        """
+        Limpa o rastreamento de gestos para uma mão específica.
+        
+        Args:
+            hand_key (str): Chave da mão
+        """
+        if hand_key in self.gesture_start_times:
+            del self.gesture_start_times[hand_key]
+        
+        # Limpar gestos validados relacionados a esta mão
+        keys_to_remove = [key for key in self.validated_gestures.keys() if key.startswith(hand_key)]
+        for key in keys_to_remove:
+            del self.validated_gestures[key]
     
     def _detect_hand_zone(self, hand_landmarks):
         """
@@ -121,26 +226,6 @@ class GestureProcessor:
         zone = self.zone_manager.get_zone_for_point(x, y)
         return zone["name"] if zone else None
     
-    def _should_execute_action(self, gesture_name, zone_name, hand_key):
-        """
-        Verifica se deve executar uma ação baseada no estado anterior.
-        
-        Args:
-            gesture_name (str): Nome do gesto
-            zone_name (str): Nome da zona
-            hand_key (str): Chave da mão
-            
-        Returns:
-            bool: True se deve executar ação
-        """
-        if not zone_name:
-            return False
-        
-        # Verificar se o estado mudou (evita repetições)
-        previous_state = self.previous_gestures_state.get(hand_key)
-        current_state = (gesture_name, zone_name)
-        
-        return previous_state != current_state
     
     def recognize_async(self, mp_image, timestamp_ms):
         """
@@ -212,3 +297,14 @@ class GestureProcessor:
         if self.recognizer:
             self.recognizer.close()
             self.recognizer = None
+        
+        # Limpar rastreamento de gestos
+        self.gesture_start_times.clear()
+        self.validated_gestures.clear()
+        self.previous_gestures_state.clear()
+    
+    def reset_gesture_tracking(self):
+        """Reseta o rastreamento de gestos para todas as mãos."""
+        self.gesture_start_times.clear()
+        self.validated_gestures.clear()
+        self.previous_gestures_state.clear()
