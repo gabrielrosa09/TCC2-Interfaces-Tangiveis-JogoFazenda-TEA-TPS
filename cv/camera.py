@@ -1,97 +1,284 @@
+"""
+Câmera principal para reconhecimento de gestos.
+Coordena todas as funcionalidades do sistema de reconhecimento.
+"""
+
 import cv2
-from cv.detector import HandDetector
 import time
+import mediapipe as mp
+from cv.config import CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_INDEX, SUPPORTED_GESTURES
+from cv.zone_manager import ZoneManager
+from cv.action_handler import ActionHandler
+from cv.gesture_processor import GestureProcessor
+from cv.visual_renderer import VisualRenderer
+
 
 class GestureCamera:
-
-    def __init__(self):
-        self.cap = cv2.VideoCapture(0)
+    """
+    Classe principal que coordena o reconhecimento de gestos.
+    
+    Responsabilidades:
+    - Gerenciar a câmera e captura de frames
+    - Coordenar os componentes do sistema
+    - Executar o loop principal de reconhecimento
+    """
+    
+    def __init__(self, game_controller=None):
+        """
+        Inicializa a câmera de gestos.
+        
+        Args:
+            game_controller: Controlador do jogo para comunicação
+        """
+        self.game_controller = game_controller
+        self.stop_camera = False  # Flag para parar a câmera
+        
+        # Inicializar componentes
+        self.zone_manager = ZoneManager()
+        self.action_handler = ActionHandler(game_controller, self.zone_manager)
+        self.gesture_processor = GestureProcessor(self.zone_manager, self.action_handler)
+        self.visual_renderer = VisualRenderer(self.zone_manager)
+        
+        # Configurar câmera
+        self._setup_camera()
+        
+        print("Sistema de reconhecimento de gestos inicializado com sucesso!")
+        print(f"Gestos suportados: {', '.join(SUPPORTED_GESTURES)}")
+    
+    def _setup_camera(self):
+        """Configura a câmera para captura de vídeo."""
+        self.cap = cv2.VideoCapture(CAMERA_INDEX)
+        
         if not self.cap.isOpened():
-            raise IOError("Não foi possível abrir a webcam.")
-
-        self.detector = HandDetector()
-        self.current_game_state = "tela_inicial"
-
+            raise IOError("Não foi possível abrir a câmera.")
+        
+        # Configurar resolução
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
+        
+        print(f"Câmera configurada: {CAMERA_WIDTH}x{CAMERA_HEIGHT}")
+    
+    def set_game_state(self, state):
+        """
+        Define o estado atual do jogo.
+        
+        Args:
+            state (str): Estado do jogo (menu, tutorial, game)
+        """
+        self.zone_manager.set_game_state(state)
+    
+    def get_current_game_state(self):
+        """
+        Retorna o estado atual do jogo.
+        
+        Returns:
+            str: Estado atual do jogo
+        """
+        return self.zone_manager.current_game_state
+    
+    def get_gesture_info(self, hand_index=0):
+        """
+        Retorna informações sobre um gesto específico.
+        
+        Args:
+            hand_index (int): Índice da mão (0 ou 1)
+            
+        Returns:
+            dict or None: Informações do gesto ou None
+        """
+        return self.gesture_processor.get_gesture_info(hand_index)
+    
+    def get_gesture_history(self):
+        """
+        Retorna o histórico de gestos.
+        
+        Returns:
+            list: Histórico de gestos
+        """
+        return self.action_handler.get_gesture_history()
+    
+    def clear_gesture_history(self):
+        """Limpa o histórico de gestos."""
+        self.action_handler.clear_history()
+    
+    def get_zone_info(self, zone_name):
+        """
+        Retorna informações sobre uma zona específica.
+        
+        Args:
+            zone_name (str): Nome da zona
+            
+        Returns:
+            str: Informações da zona
+        """
+        zone = self.zone_manager.get_zone_by_name(zone_name)
+        return self.zone_manager.get_zone_info(zone)
+    
+    def add_zone(self, screen_state, zone):
+        """
+        Adiciona uma nova zona para um estado de tela.
+        
+        Args:
+            screen_state (str): Estado da tela
+            zone (dict): Dados da zona
+        """
+        self.zone_manager.add_zone(screen_state, zone)
+    
+    def remove_zone(self, screen_state, zone_name):
+        """
+        Remove uma zona de um estado de tela.
+        
+        Args:
+            screen_state (str): Estado da tela
+            zone_name (str): Nome da zona a ser removida
+        """
+        self.zone_manager.remove_zone(screen_state, zone_name)
+    
     def run(self):
-
-        while True:
-            success, img = self.cap.read()
-            if not success:
-                break
-
-            img = cv2.flip(img, 1)
-            img = self.detector.find_hands(img)
-            lm_list = self.detector.get_landmarks(img)
-
-            gesture = self.detector.recognize_gesture(lm_list)
-
-            actionable_gesture = self.detector.check_continuous_gesture(gesture, duration=2)
-
-            if actionable_gesture:
-                self.handle_actions(actionable_gesture)
-
-            # Lógica para o gesto de fechar a mão (MAO_ABERTA > PUNHO)
-            self.handle_hand_close(gesture)
-
-            self.display_info(img, gesture)
-
-            cv2.imshow("Game Control", img)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        self.cap.release()
+        """
+        Executa o loop principal de reconhecimento de gestos.
+        
+        Este método:
+        1. Captura frames da câmera
+        2. Processa gestos com MediaPipe
+        3. Renderiza elementos visuais
+        4. Exibe o resultado na tela
+        """
+        print("Iniciando reconhecimento de gestos. Pressione 'q' para sair.")
+        
+        try:
+            while not self.stop_camera:
+                # Capturar frame
+                ret, frame = self.cap.read()
+                if not ret:
+                    print("Erro ao capturar frame da câmera.")
+                    break
+                
+                # Espelhar frame horizontalmente
+                frame = cv2.flip(frame, 1)
+                
+                # Converter para formato do MediaPipe
+                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+                
+                # Processar gestos
+                frame_timestamp_ms = int(time.time() * 1000)
+                self.gesture_processor.recognize_async(mp_image, frame_timestamp_ms)
+                
+                # Renderizar frame
+                frame = self._render_frame(frame)
+                
+                # Exibir frame
+                cv2.imshow('Gesture Recognition', frame)
+                
+                # Verificar tecla de saída
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    print("Tecla 'q' pressionada, encerrando...")
+                    break
+                
+                # Pequeno delay para estabilidade
+                time.sleep(0.01)
+                
+        except KeyboardInterrupt:
+            print("Reconhecimento interrompido pelo usuário.")
+        except Exception as e:
+            print(f"Erro durante o reconhecimento: {e}")
+        finally:
+            self.cleanup()
+    
+    def _render_frame(self, frame):
+        """
+        Renderiza o frame com todas as informações visuais.
+        
+        Args:
+            frame: Frame da câmera
+            
+        Returns:
+            numpy.ndarray: Frame renderizado
+        """
+        # Obter dados atuais dos gestos
+        gestures = self.gesture_processor.get_current_gestures()
+        hand_landmarks = self.gesture_processor.get_current_hand_landmarks()
+        handedness = self.gesture_processor.get_current_handedness()
+        
+        # Obter estado atual do jogo
+        game_state = self.get_current_game_state()
+        
+        # Renderizar frame
+        return self.visual_renderer.render_frame(
+            frame, gestures, hand_landmarks, handedness, game_state
+        )
+    
+    def run_single_frame(self):
+        """
+        Processa um único frame e retorna o resultado.
+        
+        Returns:
+            tuple: (frame_processado, gestos_detectados)
+        """
+        ret, frame = self.cap.read()
+        if not ret:
+            return None, None
+        
+        frame = cv2.flip(frame, 1)
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+        
+        frame_timestamp_ms = int(time.time() * 1000)
+        self.gesture_processor.recognize_async(mp_image, frame_timestamp_ms)
+        
+        # Aguardar processamento
+        time.sleep(0.1)
+        
+        frame = self._render_frame(frame)
+        gestures = self.gesture_processor.get_current_gestures()
+        
+        return frame, gestures
+    
+    def stop(self):
+        """Para a câmera de forma elegante."""
+        print("🛑 Parando câmera...")
+        self.stop_camera = True
+    
+    def cleanup(self):
+        """Limpa recursos e fecha a câmera."""
+        print("Limpando recursos...")
+        
+        # Parar câmera se ainda estiver rodando
+        self.stop_camera = True
+        
+        # Fechar câmera
+        if hasattr(self, 'cap') and self.cap:
+            self.cap.release()
+        
+        # Limpar processador
+        if hasattr(self, 'gesture_processor'):
+            self.gesture_processor.cleanup()
+        
+        # Fechar janelas do OpenCV
         cv2.destroyAllWindows()
-
-    def handle_hand_close(self, current_gesture):
-
-        if not hasattr(self, 'previous_gesture'):
-            self.previous_gesture = None
-
-        if self.current_game_state == "fase":
-            if self.previous_gesture == "MAO_ABERTA" and current_gesture == "PUNHO":
-                print("AÇÃO: Lógica booleana validada! (Mão fechou)")
-
-        self.previous_gesture = current_gesture
-
-    def handle_actions(self, gesture):
-
-        print(f"Gesto '{gesture}' reconhecido por 2 segundos no estado '{self.current_game_state}'")
-
-        if self.current_game_state == "tela_inicial":
-            if gesture == "ROCK":
-                print("AÇÃO: INICIANDO JOGO...")
-                self.current_game_state = "fase"
-            elif gesture == "PUNHO":
-                print("AÇÃO: VENDO TUTORIAL...")
-                self.current_game_state = "tutorial"
-            elif gesture == "PAZ":
-                print("AÇÃO: SAINDO DO JOGO...")
-                exit()
-
-        elif self.current_game_state == "tutorial":
-            if gesture == "PAZ":
-                print("AÇÃO: VOLTANDO AO MENU INICIAL...")
-                self.current_game_state = "tela_inicial"
-
-        elif self.current_game_state == "fase":
-            if gesture == "PAZ":
-                print("AÇÃO: VOLTANDO AO MENU INICIAL...")
-                self.current_game_state = "tela_inicial"
-            elif gesture == "UM":
-                print("AÇÃO: REPETINDO NARRAÇÃO...")
-
-    def display_info(self, img, gesture):
-
-        h, w, _ = img.shape
-
-        cv2.rectangle(img, (0, 0), (w, 80), (20, 20, 20), -1)
-
-
-        cv2.putText(img, f"ESTADO: {self.current_game_state.upper()}", (20, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-
-
-        detected_gesture = gesture if gesture else "Nenhum"
-        cv2.putText(img, f"Gesto: {detected_gesture}", (20, 65),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        
+        print("Recursos limpos com sucesso.")
+    
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self.cleanup()
+    
+    def get_system_status(self):
+        """
+        Retorna o status atual do sistema.
+        
+        Returns:
+            dict: Status do sistema
+        """
+        return {
+            "camera_open": self.cap.isOpened() if hasattr(self, 'cap') else False,
+            "current_state": self.get_current_game_state(),
+            "gesture_count": len(self.gesture_processor.get_current_gestures()),
+            "history_size": len(self.get_gesture_history()),
+            "zones_count": len(self.zone_manager.get_current_zones())
+        }
