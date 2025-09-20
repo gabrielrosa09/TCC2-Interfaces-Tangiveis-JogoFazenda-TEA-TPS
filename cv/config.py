@@ -13,7 +13,7 @@ CAMERA_INDEX = 0
 # ================================
 # CONFIGURAÇÕES DO MEDIAPIPE
 # ================================
-MODEL_PATH = "cv/gesture_recognizer.task"
+MODEL_PATH = "cv/mediapipe_models/gesture_recognizer.task"
 NUM_HANDS = 2
 MIN_HAND_DETECTION_CONFIDENCE = 0.5
 MIN_HAND_PRESENCE_CONFIDENCE = 0.5
@@ -57,7 +57,7 @@ SUPPORTED_GESTURES = [
 # ================================
 # CONFIGURAÇÕES DE AÇÕES
 # ================================
-ACTION_COOLDOWN_TIME = 1.0  # segundos
+ACTION_COOLDOWN_TIME = 2.0  # segundos
 GESTURE_HISTORY_SIZE = 5
 GESTURE_VALIDATION_TIME = 2.0  # segundos para validar gesto
 
@@ -69,37 +69,37 @@ GESTURE_ACTIONS = {
         name="START_GAME",
         gestures=["ILoveYou"],
         action_func="_start_game",
-        description="Inicia o jogo"
+        description="Inicia o jogo",
     ),
     "OPEN_TUTORIAL": GestureAction(
         name="OPEN_TUTORIAL",
         gestures=["Closed_Fist"],
         action_func="_open_tutorial",
-        description="Abre o tutorial"
+        description="Abre o tutorial",
     ),
     "EXIT_GAME": GestureAction(
         name="EXIT_GAME",
         gestures=["Victory"],
         action_func="_exit_game",
-        description="Sai do jogo"
+        description="Sai do jogo",
     ),
     "RETURN_MENU": GestureAction(
         name="RETURN_MENU",
         gestures=["Victory"],
         action_func="_return_to_menu",
-        description="Volta ao menu principal"
+        description="Volta ao menu principal",
     ),
     "GAME_ACTION": GestureAction(
         name="GAME_ACTION",
         gestures=["Open_Palm"],
         action_func="_execute_game_action",
-        description="Executa ação do jogo"
+        description="Executa ação do jogo",
     ),
     "REPEAT_NARRATION": GestureAction(
         name="REPEAT_NARRATION",
         gestures=["Pointing_Up"],
         action_func="_repeat_narration",
-        description="Repete a narração"
+        description="Repete a narração",
     ),
 }
 
@@ -141,7 +141,9 @@ SCREEN_ZONES = {
             "name": "GESTOS",
             "rect": (25, 300, 400, 650),
             "color": ZONE_COLORS["GESTOS"],
-            "gestures": get_gestures_for_actions(GESTURE_ACTIONS, "START_GAME", "OPEN_TUTORIAL", "EXIT_GAME"),
+            "gestures": get_gestures_for_actions(
+                GESTURE_ACTIONS, "START_GAME", "OPEN_TUTORIAL", "EXIT_GAME"
+            ),
         },
         *CONFIG_ZONES,
     ],
@@ -150,7 +152,9 @@ SCREEN_ZONES = {
             "name": "GESTOS",
             "rect": (25, 300, 400, 650),
             "color": ZONE_COLORS["GESTOS"],
-            "gestures": get_gestures_for_actions(GESTURE_ACTIONS, "RETURN_MENU", "REPEAT_NARRATION"),
+            "gestures": get_gestures_for_actions(
+                GESTURE_ACTIONS, "RETURN_MENU", "REPEAT_NARRATION"
+            ),
         },
         *CONFIG_ZONES,
     ],
@@ -159,7 +163,9 @@ SCREEN_ZONES = {
             "name": "GESTOS",
             "rect": (25, 300, 400, 650),
             "color": ZONE_COLORS["GESTOS"],
-            "gestures": get_gestures_for_actions(GESTURE_ACTIONS, "GAME_ACTION", "RETURN_MENU", "REPEAT_NARRATION"),
+            "gestures": get_gestures_for_actions(
+                GESTURE_ACTIONS, "GAME_ACTION", "RETURN_MENU", "REPEAT_NARRATION"
+            ),
         },
         *CONFIG_ZONES,
     ],
