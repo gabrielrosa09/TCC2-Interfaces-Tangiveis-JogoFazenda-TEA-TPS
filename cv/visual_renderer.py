@@ -197,18 +197,38 @@ class VisualRenderer:
         # Preparar texto do gesto
         text = f"{hand_label}: {gesture_name} ({confidence:.2f})"
         
-        # Calcular tamanho do texto para background
-        (text_width, text_height), baseline = cv2.getTextSize(
-            text, cv2.FONT_HERSHEY_SIMPLEX, TEXT_FONT, TEXT_THICKNESS)
+        # Desenhar texto com background
+        self._draw_text_with_background(frame, text, (text_x, text_y), 
+                                      TEXT_FONT, (255, 255, 255), TEXT_THICKNESS)
+    
+    def _draw_text_with_background(self, frame, text, position, font_scale, 
+                                 text_color, thickness, bg_color=(0, 0, 0)):
+        """
+        Desenha texto com fundo colorido.
         
-        # Desenhar background do texto
-        cv2.rectangle(frame, (text_x, text_y - text_height - 10), 
-                     (text_x + text_width, text_y + 5), (0, 0, 0), -1)
+        Args:
+            frame: Frame onde desenhar
+            text: Texto a desenhar
+            position: Posição (x, y) do texto
+            font_scale: Escala da fonte
+            text_color: Cor do texto
+            thickness: Espessura do texto
+            bg_color: Cor do fundo
+        """
+        x, y = position
+        
+        # Calcular tamanho do texto
+        (text_width, text_height), baseline = cv2.getTextSize(
+            text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+        
+        # Desenhar background
+        cv2.rectangle(frame, (x, y - text_height - 10), 
+                     (x + text_width, y + 5), bg_color, -1)
         
         # Desenhar texto
-        cv2.putText(frame, text, (text_x, text_y), 
-                   cv2.FONT_HERSHEY_SIMPLEX, TEXT_FONT, (255, 255, 255), TEXT_THICKNESS)
-    
+        cv2.putText(frame, text, position, cv2.FONT_HERSHEY_SIMPLEX, 
+                   font_scale, text_color, thickness)
+
     def draw_zone_highlight(self, frame, zone_name, color=(0, 255, 255)):
         """
         Destaca uma zona específica.

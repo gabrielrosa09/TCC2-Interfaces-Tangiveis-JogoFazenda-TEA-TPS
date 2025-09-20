@@ -41,13 +41,7 @@ class ActionHandler:
 
         # Executar ação baseada no estado atual
         current_state = self.zone_manager.current_game_state
-
-        if current_state == "menu":
-            self._handle_menu_actions(gesture_name, zone_name)
-        elif current_state == "tutorial":
-            self._handle_tutorial_actions(gesture_name, zone_name)
-        elif current_state == "fase1":
-            self._handle_game_actions(gesture_name, zone_name)
+        self._handle_gesture_actions(gesture_name, zone_name, current_state)
 
         # Registrar cooldown
         self._register_cooldown(gesture_name, zone_name)
@@ -84,6 +78,39 @@ class ActionHandler:
         if len(self.gesture_history) > self.max_history:
             self.gesture_history.pop(0)
 
+    def _handle_gesture_actions(self, gesture_name, zone_name, current_state):
+        """
+        Gerencia ações baseadas no gesto, zona e estado atual do jogo.
+        
+        Args:
+            gesture_name (str): Nome do gesto reconhecido
+            zone_name (str): Nome da zona onde o gesto foi detectado
+            current_state (str): Estado atual do jogo
+        """
+        if zone_name != "GESTOS":
+            return
+        
+        # Definir quais ações são válidas para cada estado
+        state_actions = {
+            "menu": ["START_GAME", "OPEN_TUTORIAL", "EXIT_GAME"],
+            "tutorial": ["RETURN_MENU", "REPEAT_NARRATION"],
+            "fase1": ["GAME_ACTION", "RETURN_MENU", "REPEAT_NARRATION"],
+        }
+        
+        # Obter ações válidas para o estado atual
+        valid_actions = state_actions.get(current_state, [])
+        
+        # Verificar cada ação válida para ver se o gesto corresponde
+        for action_key in valid_actions:
+            if action_key in GESTURE_ACTIONS:
+                action = GESTURE_ACTIONS[action_key]
+                if action.is_gesture_valid(gesture_name):
+                    print(f"🎯 Executando ação: {action.description}")
+                    action.execute(self)
+                    return
+        
+        print(f"⚠️ Gesto '{gesture_name}' não reconhecido para o estado '{current_state}'")
+
     def _is_gesture_valid_for_action(self, gesture_name, action_key):
         """
         Verifica se um gesto é válido para uma ação específica.
@@ -97,35 +124,8 @@ class ActionHandler:
         """
         if action_key not in GESTURE_ACTIONS:
             return False
-        return gesture_name in GESTURE_ACTIONS[action_key]
+        return GESTURE_ACTIONS[action_key].is_gesture_valid(gesture_name)
 
-    def _handle_menu_actions(self, gesture_name, zone_name):
-        """Gerencia ações da tela de menu."""
-        if zone_name == "GESTOS":
-            if self._is_gesture_valid_for_action(gesture_name, "START_GAME"):
-                self._start_game()
-            elif self._is_gesture_valid_for_action(gesture_name, "OPEN_TUTORIAL"):
-                self._open_tutorial()
-            elif self._is_gesture_valid_for_action(gesture_name, "EXIT_GAME"):
-                self._exit_game()
-
-    def _handle_tutorial_actions(self, gesture_name, zone_name):
-        """Gerencia ações da tela de tutorial."""
-        if zone_name == "GESTOS":
-            if self._is_gesture_valid_for_action(gesture_name, "RETURN_MENU"):
-                self._return_to_menu()
-            elif self._is_gesture_valid_for_action(gesture_name, "REPEAT_NARRATION"):
-                self._repeat_narration()
-
-    def _handle_game_actions(self, gesture_name, zone_name):
-        """Gerencia ações da tela de jogo."""
-        if zone_name == "GESTOS":
-            if self._is_gesture_valid_for_action(gesture_name, "GAME_ACTION"):
-                self._execute_game_action()
-            elif self._is_gesture_valid_for_action(gesture_name, "REPEAT_NARRATION"):
-                self._repeat_narration()
-            elif self._is_gesture_valid_for_action(gesture_name, "RETURN_MENU"):
-                self._return_to_menu()
 
     def _start_game(self):
         """Inicia o jogo."""
@@ -213,9 +213,16 @@ class ActionHandler:
         Retorna informações sobre os gestos configurados para cada ação.
 
         Returns:
-            dict: Mapeamento de ações para gestos
+            dict: Mapeamento de ações para informações das ações
         """
-        return GESTURE_ACTIONS.copy()
+        return {
+            key: {
+                "name": action.name,
+                "gestures": action.gestures,
+                "description": action.description
+            }
+            for key, action in GESTURE_ACTIONS.items()
+        }
 
     def get_gestures_for_action(self, action_key):
         """
@@ -227,4 +234,6 @@ class ActionHandler:
         Returns:
             list: Lista de gestos válidos para a ação
         """
-        return GESTURE_ACTIONS.get(action_key, [])
+        if action_key in GESTURE_ACTIONS:
+            return GESTURE_ACTIONS[action_key].gestures.copy()
+        return []
