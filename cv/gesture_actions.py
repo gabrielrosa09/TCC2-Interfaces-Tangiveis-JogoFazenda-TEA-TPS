@@ -6,11 +6,11 @@ Contém a classe GestureAction e funções auxiliares relacionadas.
 
 class GestureAction:
     """Classe que representa uma ação baseada em gesto."""
-    
+
     def __init__(self, name, gestures, action_func, description=""):
         """
         Inicializa uma ação de gesto.
-        
+
         Args:
             name (str): Nome da ação
             gestures (list): Lista de gestos que ativam esta ação
@@ -21,11 +21,11 @@ class GestureAction:
         self.gestures = gestures if isinstance(gestures, list) else [gestures]
         self.action_func = action_func
         self.description = description
-    
+
     def is_gesture_valid(self, gesture_name):
         """Verifica se um gesto é válido para esta ação."""
         return gesture_name in self.gestures
-    
+
     def execute(self, action_handler, *args, **kwargs):
         """Executa a ação."""
         if callable(self.action_func):
@@ -36,22 +36,16 @@ class GestureAction:
             if method and callable(method):
                 return method(*args, **kwargs)
         return None
-    
-    def __str__(self):
-        return f"GestureAction({self.name}: {self.gestures})"
-    
-    def __repr__(self):
-        return self.__str__()
 
 
 def get_gestures_for_actions(gesture_actions_dict, *action_keys):
     """
     Retorna uma lista de gestos para as ações especificadas.
-    
+
     Args:
         gesture_actions_dict (dict): Dicionário de ações de gesto
         *action_keys: Chaves das ações
-        
+
     Returns:
         list: Lista de gestos únicos
     """
