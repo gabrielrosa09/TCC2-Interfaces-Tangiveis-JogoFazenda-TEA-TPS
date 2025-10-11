@@ -21,7 +21,7 @@ class VisualRenderer:
     def __init__(self, zone_manager=None):
         self.zone_manager = zone_manager
 
-    def render_frame(self, frame, gestures, hand_landmarks, handedness, game_state):
+    def render_frame(self, frame, gestures, hand_landmarks, handedness, game_state, object_detections=None):
         """
         Renderiza um frame completo com todas as informações visuais.
 
@@ -31,6 +31,7 @@ class VisualRenderer:
             hand_landmarks: Lista de landmarks das mãos
             handedness: Lista de lateralidade das mãos
             game_state: Estado atual do jogo
+            object_detections: Lista de detecções de objetos
 
         Returns:
             numpy.ndarray: Frame renderizado
@@ -46,6 +47,10 @@ class VisualRenderer:
         # Desenhar mãos e gestos
         if gestures and hand_landmarks:
             self._draw_hands_and_gestures(frame, gestures, hand_landmarks, handedness)
+
+        # Desenhar detecções de objetos
+        if object_detections:
+            self._draw_object_detections(frame, object_detections)
 
         return frame
 
@@ -297,3 +302,61 @@ class VisualRenderer:
             text_color,
             thickness,
         )
+
+    def _draw_object_detections(self, frame, detections):
+        """
+        Desenha bounding boxes e labels dos objetos detectados.
+
+        Args:
+            frame: Frame da câmera
+            detections: Lista de detecções de objetos
+        """
+        # Cores para diferentes objetos (BGR)
+        colors = [
+            (0, 255, 0),    # Verde
+            (255, 0, 0),    # Vermelho
+            (0, 0, 255),    # Azul
+            (255, 255, 0),  # Ciano
+            (255, 0, 255),  # Magenta
+            (0, 255, 255),  # Amarelo
+        ]
+
+        for detection in detections:
+            if not detection.categories:
+                continue
+
+            # Obter categoria e confiança
+            category = detection.categories[0]
+            label = category.category_name
+            confidence = category.score
+
+            # Obter coordenadas do bounding box
+            bbox = detection.bounding_box
+            x = int(bbox.origin_x)
+            y = int(bbox.origin_y)
+            width = int(bbox.width)
+            height = int(bbox.height)
+
+            # Coordenadas do retângulo
+            x1, y1 = x, y
+            x2, y2 = x + width, y + height
+
+            # Escolher cor baseada no hash do label
+            color = colors[hash(label) % len(colors)]
+
+            # Desenhar retângulo
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+
+            # Preparar texto do label
+            text = f"{label}: {confidence:.2f}"
+
+            # Desenhar texto com background
+            self._draw_text_with_background(
+                frame,
+                text,
+                (x1, y1 - 5),
+                0.6,
+                (255, 255, 255),
+                2,
+                bg_color=color,
+            )

@@ -68,6 +68,39 @@ class ZoneManager:
             return False
         return gesture_name in zone["gestures"]
 
+    def is_object_valid_for_zone(self, object_name, zone):
+        """
+        Verifica se um objeto é válido para uma zona específica.
+
+        Args:
+            object_name (str): Nome do objeto
+            zone (dict): Zona a ser verificada
+
+        Returns:
+            bool: True se o objeto é válido para a zona
+        """
+        if not zone or "objects" not in zone:
+            return False
+        return object_name in zone["objects"]
+
+    def is_recognition_valid_for_zone(self, recognition_name, zone, recognition_type):
+        """
+        Verifica se um reconhecimento (gesto ou objeto) é válido para uma zona.
+
+        Args:
+            recognition_name (str): Nome do gesto ou objeto
+            zone (dict): Zona a ser verificada
+            recognition_type (str): Tipo de reconhecimento ("gesture" ou "object")
+
+        Returns:
+            bool: True se o reconhecimento é válido para a zona
+        """
+        if recognition_type == "gesture":
+            return self.is_gesture_valid_for_zone(recognition_name, zone)
+        elif recognition_type == "object":
+            return self.is_object_valid_for_zone(recognition_name, zone)
+        return False
+
     def get_zone_by_name(self, zone_name):
         """
         Busca uma zona pelo nome na tela atual.
