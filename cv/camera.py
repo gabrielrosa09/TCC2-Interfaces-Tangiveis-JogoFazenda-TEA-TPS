@@ -6,16 +6,23 @@ Coordena todas as funcionalidades do sistema de reconhecimento.
 import cv2
 import time
 import mediapipe as mp
-from cv.config import CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_INDEX, SUPPORTED_GESTURES
+from cv.config import (
+    CAMERA_WIDTH,
+    CAMERA_HEIGHT,
+    CAMERA_INDEX,
+    SUPPORTED_GESTURES,
+    SUPPORTED_OBJECTS,
+)
 from cv.zone_manager import ZoneManager
 from cv.action_handler import ActionHandler
 from cv.gesture_processor import GestureProcessor
+from cv.object_processor import ObjectProcessor
 from cv.visual_renderer import VisualRenderer
 
 
 class GestureCamera:
     """
-    Classe principal que coordena o reconhecimento de gestos.
+    Classe principal que coordena o reconhecimento de gestos e objetos.
 
     Responsabilidades:
     - Gerenciar a câmera e captura de frames
@@ -25,7 +32,7 @@ class GestureCamera:
 
     def __init__(self, game_controller=None):
         """
-        Inicializa a câmera de gestos.
+        Inicializa a câmera de reconhecimento.
 
         Args:
             game_controller: Controlador do jogo para comunicação
@@ -39,13 +46,17 @@ class GestureCamera:
         self.gesture_processor = GestureProcessor(
             self.zone_manager, self.action_handler
         )
+        self.object_processor = ObjectProcessor(
+            self.zone_manager, self.action_handler
+        )
         self.visual_renderer = VisualRenderer(self.zone_manager)
 
         # Configurar câmera
         self._setup_camera()
 
-        print("Sistema de reconhecimento de gestos inicializado com sucesso!")
+        print("Sistema de reconhecimento de gestos e objetos inicializado com sucesso!")
         print(f"Gestos suportados: {', '.join(SUPPORTED_GESTURES)}")
+        print(f"Objetos suportados: {', '.join(SUPPORTED_OBJECTS)}")
 
     def _setup_camera(self):
         """Configura a câmera para captura de vídeo."""
@@ -88,15 +99,15 @@ class GestureCamera:
 
     def run(self):
         """
-        Executa o loop principal de reconhecimento de gestos.
+        Executa o loop principal de reconhecimento de gestos e objetos.
 
         Este método:
         1. Captura frames da câmera
-        2. Processa gestos com MediaPipe
+        2. Processa gestos e objetos com MediaPipe
         3. Renderiza elementos visuais
         4. Exibe o resultado na tela
         """
-        print("Iniciando reconhecimento de gestos. Pressione 'q' para sair.")
+        print("Iniciando reconhecimento de gestos e objetos. Pressione 'q' para sair.")
 
         try:
             while not self.stop_camera:
@@ -113,15 +124,16 @@ class GestureCamera:
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
-                # Processar gestos
+                # Processar gestos e objetos
                 frame_timestamp_ms = int(time.time() * 1000)
                 self.gesture_processor.recognize_async(mp_image, frame_timestamp_ms)
+                self.object_processor.detect_async(mp_image, frame_timestamp_ms)
 
                 # Renderizar frame
                 frame = self._render_frame(frame)
 
                 # Exibir frame
-                cv2.imshow("Gesture Recognition", frame)
+                cv2.imshow("Gesture & Object Recognition", frame)
 
                 # Verificar tecla de saída
                 if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -153,12 +165,15 @@ class GestureCamera:
         hand_landmarks = self.gesture_processor.get_current_hand_landmarks()
         handedness = self.gesture_processor.get_current_handedness()
 
+        # Obter dados atuais dos objetos
+        object_detections = self.object_processor.get_filtered_detections()
+
         # Obter estado atual do jogo
         game_state = self.get_current_game_state()
 
         # Renderizar frame
         return self.visual_renderer.render_frame(
-            frame, gestures, hand_landmarks, handedness, game_state
+            frame, gestures, hand_landmarks, handedness, game_state, object_detections
         )
 
     def stop(self):
@@ -177,9 +192,11 @@ class GestureCamera:
         if hasattr(self, "cap") and self.cap:
             self.cap.release()
 
-        # Limpar processador
+        # Limpar processadores
         if hasattr(self, "gesture_processor"):
             self.gesture_processor.cleanup()
+        if hasattr(self, "object_processor"):
+            self.object_processor.cleanup()
 
         # Fechar janelas do OpenCV
         cv2.destroyAllWindows()
@@ -197,6 +214,7 @@ class GestureCamera:
             "camera_open": self.cap.isOpened() if hasattr(self, "cap") else False,
             "current_state": self.get_current_game_state(),
             "gesture_count": len(self.gesture_processor.get_current_gestures()),
+            "object_count": len(self.object_processor.get_filtered_detections()),
             "history_size": len(self.get_gesture_history()),
             "zones_count": len(self.zone_manager.get_current_zones()),
         }
