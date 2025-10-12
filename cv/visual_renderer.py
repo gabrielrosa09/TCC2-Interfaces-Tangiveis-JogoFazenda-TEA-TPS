@@ -21,7 +21,15 @@ class VisualRenderer:
     def __init__(self, zone_manager=None):
         self.zone_manager = zone_manager
 
-    def render_frame(self, frame, gestures, hand_landmarks, handedness, game_state, object_detections=None):
+    def render_frame(
+        self,
+        frame,
+        gestures,
+        hand_landmarks,
+        handedness,
+        game_state,
+        object_detections=None,
+    ):
         """
         Renderiza um frame completo com todas as informações visuais.
 
@@ -85,18 +93,30 @@ class VisualRenderer:
             )
 
             # Desenhar gestos aceitos na zona
-            gestures_text = (
-                ", ".join(zone["gestures"]) if zone["gestures"] else "Nenhum"
-            )
-            cv2.putText(
-                frame,
-                f"Gestos: {gestures_text}",
-                (x1, y2 + 20),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                color,
-                1,
-            )
+            gestures_text = ", ".join(zone["gestures"])
+            if gestures_text:
+                cv2.putText(
+                    frame,
+                    f"Gestos: {gestures_text}",
+                    (x1, y2 + 20),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    color,
+                    1,
+                )
+
+            # Desenhar objetos aceitos na zona
+            objects_text = ", ".join(zone["objects"])
+            if objects_text:
+                cv2.putText(
+                    frame,
+                    f"Objetos: {objects_text}",
+                    (x1, y2 + 20),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    color,
+                    1,
+                )
 
     def _draw_state_info(self, frame, game_state):
         """
@@ -313,9 +333,9 @@ class VisualRenderer:
         """
         # Cores para diferentes objetos (BGR)
         colors = [
-            (0, 255, 0),    # Verde
-            (255, 0, 0),    # Vermelho
-            (0, 0, 255),    # Azul
+            (0, 255, 0),  # Verde
+            (255, 0, 0),  # Vermelho
+            (0, 0, 255),  # Azul
             (255, 255, 0),  # Ciano
             (255, 0, 255),  # Magenta
             (0, 255, 255),  # Amarelo
