@@ -13,7 +13,8 @@ from cv.config import (
     MIN_HAND_PRESENCE_CONFIDENCE,
     MIN_TRACKING_CONFIDENCE,
     SUPPORTED_GESTURES,
-    RECOGNITION_VALIDATION_TIME,
+    CAMERA_WIDTH,
+    CAMERA_HEIGHT,
 )
 
 
@@ -114,8 +115,8 @@ class GestureProcessor(BaseRecognitionProcessor):
 
         # Usar o pulso (landmark 0) como referência
         wrist = hand_landmarks[0]
-        x = int(wrist.x * 1280)  # Largura do frame
-        y = int(wrist.y * 720)  # Altura do frame
+        x = int(wrist.x * CAMERA_WIDTH)  # Largura do frame
+        y = int(wrist.y * CAMERA_HEIGHT)  # Altura do frame
 
         zone = self.zone_manager.get_zone_for_point(x, y)
         return zone["name"] if zone else None

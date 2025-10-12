@@ -97,8 +97,6 @@ class ActionHandler:
             zone_name (str): Nome da zona onde o gesto foi detectado
             current_state (str): Estado atual do jogo
         """
-        if zone_name != "GESTOS":
-            return
 
         # Definir quais ações são válidas para cada estado
         state_actions = {
@@ -132,8 +130,6 @@ class ActionHandler:
             zone_name (str): Nome da zona onde o objeto foi detectado
             current_state (str): Estado atual do jogo
         """
-        if zone_name != "OBJETOS":
-            return
 
         # Definir quais ações são válidas para cada estado
         state_actions = {

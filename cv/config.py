@@ -7,8 +7,8 @@ from cv.object_actions import ObjectAction, get_objects_for_actions
 # ================================
 # CONFIGURAÇÕES DA CÂMERA
 # ================================
-CAMERA_WIDTH = 1280
-CAMERA_HEIGHT = 720
+CAMERA_WIDTH = 1920
+CAMERA_HEIGHT = 1080
 CAMERA_INDEX = 0
 
 # ================================
@@ -46,6 +46,7 @@ ZONE_COLORS = {
     "SOM": (255, 0, 0),  # Vermelho
     "BRILHO": (0, 255, 0),  # Verde
     "TAMANHO_FONTE": (0, 0, 255),  # Azul
+    "OBJETOS": (0, 255, 255),  # Amarelo
     "DEFAULT": (128, 128, 128),  # Cinza
 }
 
@@ -89,8 +90,6 @@ SUPPORTED_OBJECTS = {
 ACTION_COOLDOWN_TIME = 2.0  # segundos
 GESTURE_HISTORY_SIZE = 5
 RECOGNITION_VALIDATION_TIME = 2.0  # segundos para validar gesto/objeto
-# Manter compatibilidade com código existente
-GESTURE_VALIDATION_TIME = RECOGNITION_VALIDATION_TIME
 
 # ================================
 # AÇÕES DE GESTO CONFIGURADAS
@@ -190,6 +189,49 @@ CONFIG_ZONES = [
     },
 ]
 
+FASE1_MATRIX_ZONES = [
+    {
+        "name": "INPUT1",
+        "rect": (450, 50, 750, 350),
+        "color": ZONE_COLORS["OBJETOS"],
+        "gestures": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "FEED_ANIMAL",
+        ),
+    },
+    {
+        "name": "INPUT2",
+        "rect": (450, 650, 750, 950),
+        "color": ZONE_COLORS["OBJETOS"],
+        "gestures": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "FEED_ANIMAL",
+        ),
+    },
+    {
+        "name": "GATE1",
+        "rect": (850, 350, 1150, 650),
+        "color": ZONE_COLORS["OBJETOS"],
+        "gestures": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "PLACE_OBJECT",
+        ),
+    },
+    {
+        "name": "GATE2",
+        "rect": (1250, 350, 1550, 650),
+        "color": ZONE_COLORS["OBJETOS"],
+        "gestures": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "USE_TOOL",
+        ),
+    },
+]
+
 # ================================
 # CONFIGURAÇÕES DE ZONAS POR TELA
 # ================================
@@ -197,7 +239,7 @@ SCREEN_ZONES = {
     "menu": [
         {
             "name": "GESTOS",
-            "rect": (25, 300, 400, 650),
+            "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
             "color": ZONE_COLORS["GESTOS"],
             "gestures": get_gestures_for_actions(
                 GESTURE_ACTIONS, "START_GAME", "OPEN_TUTORIAL", "EXIT_GAME"
@@ -209,7 +251,7 @@ SCREEN_ZONES = {
     "tutorial": [
         {
             "name": "GESTOS",
-            "rect": (25, 300, 400, 650),
+            "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
             "color": ZONE_COLORS["GESTOS"],
             "gestures": get_gestures_for_actions(
                 GESTURE_ACTIONS, "RETURN_MENU", "REPEAT_NARRATION"
@@ -221,22 +263,14 @@ SCREEN_ZONES = {
     "fase1": [
         {
             "name": "GESTOS",
-            "rect": (25, 300, 400, 650),
+            "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
             "color": ZONE_COLORS["GESTOS"],
             "gestures": get_gestures_for_actions(
                 GESTURE_ACTIONS, "GAME_ACTION", "RETURN_MENU", "REPEAT_NARRATION"
             ),
             "objects": [],
         },
-        {
-            "name": "OBJETOS",
-            "rect": (880, 300, 1255, 650),
-            "color": ZONE_COLORS["DEFAULT"],
-            "gestures": [],
-            "objects": get_objects_for_actions(
-                OBJECT_ACTIONS, "FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT"
-            ),
-        },
+        *FASE1_MATRIX_ZONES,
         *CONFIG_ZONES,
     ],
 }
