@@ -85,6 +85,28 @@ SUPPORTED_OBJECTS = {
 }
 
 # ================================
+# CONFIGURAÇÕES DE BRILHO
+# ================================
+BRIGHTNESS_LEVELS = {
+    "apple": 0,    # 100% de brilho (sem escurecimento)
+    "cup": 102,       # 60% de brilho (40% de opacidade)
+    "fork": 179,      # 30% de brilho (70% de opacidade)
+}
+DEFAULT_BRIGHTNESS_OBJECT = "apple"
+
+# ================================
+# CONFIGURAÇÕES DE VOLUME
+# ================================
+VOLUME_LEVELS = {
+    "banana": 1.0,      # 100% de volume
+    "clock": 0.7,           # 70% de volume
+    "toothbrush": 0.4,      # 40% de volume
+    "cell phone": 0.0,          # 0% de volume (mudo)
+}
+DEFAULT_VOLUME_OBJECT = "banana"
+BACKGROUND_MUSIC_PATH = "assets/sounds/background-music.mp3"
+
+# ================================
 # CONFIGURAÇÕES DE AÇÕES
 # ================================
 ACTION_COOLDOWN_TIME = 2.0  # segundos
@@ -155,6 +177,18 @@ OBJECT_ACTIONS = {
         action_func="_place_object",
         description="Coloca um objeto",
     ),
+    "CHANGE_BRIGHTNESS": ObjectAction(
+        name="CHANGE_BRIGHTNESS",
+        objects=list(BRIGHTNESS_LEVELS.keys()),
+        action_func="_change_brightness",
+        description="Altera o brilho da tela",
+    ),
+    "CHANGE_VOLUME": ObjectAction(
+        name="CHANGE_VOLUME",
+        objects=list(VOLUME_LEVELS.keys()),
+        action_func="_change_volume",
+        description="Altera o volume do som",
+    ),
 }
 
 # ================================
@@ -168,21 +202,27 @@ GAME_STATES = {"MENU": "menu", "TUTORIAL": "tutorial", "FASE1": "fase1"}
 CONFIG_ZONES = [
     {
         "name": "SOM",
-        "rect": (CAMERA_WIDTH - 100, 0, CAMERA_WIDTH, 100),
+        "rect": (0, 0, 300, 300),
         "color": ZONE_COLORS["SOM"],
         "gestures": [],
-        "objects": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "CHANGE_VOLUME",
+        ),
     },
     {
         "name": "BRILHO",
-        "rect": (CAMERA_WIDTH - 100, 100, CAMERA_WIDTH, 200),
+        "rect": (400, 0, 700, 300),
         "color": ZONE_COLORS["BRILHO"],
         "gestures": [],
-        "objects": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "CHANGE_BRIGHTNESS",
+        ),
     },
     {
         "name": "TAMANHO DE FONTE",
-        "rect": (CAMERA_WIDTH - 100, 200, CAMERA_WIDTH, 300),
+        "rect": (800, 0, 1100, 300),
         "color": ZONE_COLORS["TAMANHO_FONTE"],
         "gestures": [],
         "objects": [],

@@ -50,7 +50,7 @@ class ActionHandler:
         if recognition_type == "gesture":
             self._handle_gesture_actions(recognition_name, zone_name, current_state)
         elif recognition_type == "object":
-            self._handle_object_actions(recognition_name, zone_name, current_state)
+            self._handle_object_actions(recognition_name, zone_name, current_state, item_info)
 
         # Registrar cooldown
         self._register_cooldown(recognition_name, zone_name)
@@ -121,7 +121,7 @@ class ActionHandler:
             f"⚠️ Gesto '{gesture_name}' não reconhecido para o estado '{current_state}'"
         )
 
-    def _handle_object_actions(self, object_name, zone_name, current_state):
+    def _handle_object_actions(self, object_name, zone_name, current_state, item_info=None):
         """
         Gerencia ações baseadas no objeto, zona e estado atual do jogo.
 
@@ -129,13 +129,14 @@ class ActionHandler:
             object_name (str): Nome do objeto reconhecido
             zone_name (str): Nome da zona onde o objeto foi detectado
             current_state (str): Estado atual do jogo
+            item_info (str): Informação adicional sobre o objeto
         """
 
         # Definir quais ações são válidas para cada estado
         state_actions = {
-            "menu": [],
-            "tutorial": [],
-            "fase1": ["FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT"],
+            "menu": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME"],
+            "tutorial": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME"],
+            "fase1": ["FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT", "CHANGE_BRIGHTNESS", "CHANGE_VOLUME"],
         }
 
         # Obter ações válidas para o estado atual
@@ -147,7 +148,7 @@ class ActionHandler:
                 action = OBJECT_ACTIONS[action_key]
                 if action.is_object_valid(object_name):
                     print(f"🎯 Executando ação de objeto: {action.description}")
-                    action.execute(self)
+                    action.execute(self, object_name=object_name, zone_name=zone_name)
                     return
 
         print(
@@ -237,3 +238,65 @@ class ActionHandler:
             list: Histórico de reconhecimentos
         """
         return self.recognition_history.copy()
+
+    def _change_brightness(self, object_name=None, zone_name=None):
+        """
+        Altera o brilho da tela baseado no objeto detectado.
+
+        Args:
+            object_name (str): Nome do objeto que define o nível de brilho
+            zone_name (str): Nome da zona onde o objeto foi detectado
+        """
+        from cv.config import BRIGHTNESS_LEVELS
+
+        if object_name and object_name in BRIGHTNESS_LEVELS:
+            opacity = BRIGHTNESS_LEVELS[object_name]
+
+            # Atualizar o brilho no jogo
+            if self.game_controller and hasattr(self.game_controller, "game"):
+                if hasattr(self.game_controller.game, "brightness_overlay"):
+                    # Verificar se o brilho já está no nível desejado
+                    current_opacity = self.game_controller.game.brightness_overlay.get_opacity()
+                    
+                    if current_opacity == opacity:
+                        return
+                    
+                    # Só alterar se for diferente
+                    print(f"💡 ALTERANDO BRILHO: {object_name} (opacidade: {opacity})")
+                    self.game_controller.game.brightness_overlay.set_opacity(opacity)
+                    print(f"✅ Brilho alterado com sucesso!")
+                else:
+                    print("⚠️ BrightnessOverlay não encontrado no jogo")
+        else:
+            print(f"⚠️ Objeto '{object_name}' não possui configuração de brilho")
+
+    def _change_volume(self, object_name=None, zone_name=None):
+        """
+        Altera o volume do som baseado no objeto detectado.
+
+        Args:
+            object_name (str): Nome do objeto que define o nível de volume
+            zone_name (str): Nome da zona onde o objeto foi detectado
+        """
+        from cv.config import VOLUME_LEVELS
+
+        if object_name and object_name in VOLUME_LEVELS:
+            volume = VOLUME_LEVELS[object_name]
+
+            # Atualizar o volume no jogo
+            if self.game_controller and hasattr(self.game_controller, "game"):
+                if hasattr(self.game_controller.game, "audio_manager"):
+                    # Verificar se o volume já está no nível desejado
+                    current_volume = self.game_controller.game.audio_manager.get_volume()
+                    
+                    if current_volume == volume:
+                        return
+                    
+                    # Só alterar se for diferente
+                    print(f"🔊 ALTERANDO VOLUME: {object_name} (volume: {volume * 100:.0f}%)")
+                    self.game_controller.game.audio_manager.set_volume(volume)
+                    print(f"✅ Volume alterado com sucesso!")
+                else:
+                    print("⚠️ AudioManager não encontrado no jogo")
+        else:
+            print(f"⚠️ Objeto '{object_name}' não possui configuração de volume")
