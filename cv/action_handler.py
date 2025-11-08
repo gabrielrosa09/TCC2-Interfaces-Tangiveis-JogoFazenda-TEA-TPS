@@ -134,9 +134,9 @@ class ActionHandler:
 
         # Definir quais ações são válidas para cada estado
         state_actions = {
-            "menu": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME"],
-            "tutorial": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME"],
-            "fase1": ["FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT", "CHANGE_BRIGHTNESS", "CHANGE_VOLUME"],
+            "menu": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
+            "tutorial": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
+            "fase1": ["FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT", "CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
         }
 
         # Obter ações válidas para o estado atual
@@ -300,3 +300,35 @@ class ActionHandler:
                     print("⚠️ AudioManager não encontrado no jogo")
         else:
             print(f"⚠️ Objeto '{object_name}' não possui configuração de volume")
+
+    def _change_color_mode(self, object_name=None, zone_name=None):
+        """
+        Altera o modo de cor da interface baseado no objeto detectado.
+
+        Args:
+            object_name (str): Nome do objeto que define o modo de cor
+            zone_name (str): Nome da zona onde o objeto foi detectado
+        """
+        from cv.config import COLOR_MODES
+
+        if object_name and object_name in COLOR_MODES:
+            color_mode = COLOR_MODES[object_name]
+
+            # Atualizar o modo de cor no jogo
+            if self.game_controller and hasattr(self.game_controller, "game"):
+                if hasattr(self.game_controller.game, "color_filter"):
+                    # Verificar se o modo já está configurado
+                    current_mode = self.game_controller.game.color_filter.get_mode()
+                    
+                    if current_mode == color_mode:
+                        return
+                    
+                    # Só alterar se for diferente
+                    mode_name = "COLORIDO" if color_mode == "color" else "PRETO E BRANCO"
+                    print(f"🎨 ALTERANDO MODO DE COR: {object_name} → {mode_name}")
+                    self.game_controller.game.color_filter.set_mode(color_mode)
+                    print(f"✅ Modo de cor alterado com sucesso!")
+                else:
+                    print("⚠️ ColorFilter não encontrado no jogo")
+        else:
+            print(f"⚠️ Objeto '{object_name}' não possui configuração de cor")
