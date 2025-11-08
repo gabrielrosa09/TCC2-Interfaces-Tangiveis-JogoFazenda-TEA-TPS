@@ -98,13 +98,32 @@ DEFAULT_BRIGHTNESS_OBJECT = "apple"
 # CONFIGURAÇÕES DE VOLUME
 # ================================
 VOLUME_LEVELS = {
-    "banana": 1.0,      # 100% de volume
-    "clock": 0.7,           # 70% de volume
-    "toothbrush": 0.4,      # 40% de volume
-    "cell phone": 0.0,          # 0% de volume (mudo)
+    "toothbrush": 0.7,          # 100% de volume
+    "orange": 0.5,          # 70% de volume
+    "banana": 0.3,      # 40% de volume
+    "broccoli": 0.0,        # 0% de volume (mudo)
 }
 DEFAULT_VOLUME_OBJECT = "banana"
-BACKGROUND_MUSIC_PATH = "assets/sounds/background-music.mp3"
+
+# ================================
+# CONFIGURAÇÕES DE SONS DO JOGO
+# ================================
+GAME_SOUNDS = {
+    "background_music": {
+        "path": "assets/sounds/background-music.mp3",
+        "base_volume": 0.2,
+        "description": "Música de fundo do jogo",
+    },
+}
+
+# ================================
+# CONFIGURAÇÕES DE COR
+# ================================
+COLOR_MODES = {
+    "cell phone": "color",      # Modo colorido (padrão)
+    "clock": "grayscale",       # Modo preto e branco (escala de cinza)
+}
+DEFAULT_COLOR_MODE_OBJECT = "cell phone"
 
 # ================================
 # CONFIGURAÇÕES DE AÇÕES
@@ -159,24 +178,6 @@ GESTURE_ACTIONS = {
 # AÇÕES DE OBJETO CONFIGURADAS
 # ================================
 OBJECT_ACTIONS = {
-    "FEED_ANIMAL": ObjectAction(
-        name="FEED_ANIMAL",
-        objects=["apple", "banana", "orange", "carrot"],
-        action_func="_feed_animal",
-        description="Alimenta um animal",
-    ),
-    "USE_TOOL": ObjectAction(
-        name="USE_TOOL",
-        objects=["fork", "knife", "spoon", "scissors"],
-        action_func="_use_tool",
-        description="Usa uma ferramenta",
-    ),
-    "PLACE_OBJECT": ObjectAction(
-        name="PLACE_OBJECT",
-        objects=["cup", "remote", "cell phone", "clock"],
-        action_func="_place_object",
-        description="Coloca um objeto",
-    ),
     "CHANGE_BRIGHTNESS": ObjectAction(
         name="CHANGE_BRIGHTNESS",
         objects=list(BRIGHTNESS_LEVELS.keys()),
@@ -188,6 +189,12 @@ OBJECT_ACTIONS = {
         objects=list(VOLUME_LEVELS.keys()),
         action_func="_change_volume",
         description="Altera o volume do som",
+    ),
+    "CHANGE_COLOR_MODE": ObjectAction(
+        name="CHANGE_COLOR_MODE",
+        objects=list(COLOR_MODES.keys()),
+        action_func="_change_color_mode",
+        description="Altera o modo de cor da interface",
     ),
 }
 
@@ -221,11 +228,14 @@ CONFIG_ZONES = [
         ),
     },
     {
-        "name": "TAMANHO DE FONTE",
+        "name": "COR",
         "rect": (800, 0, 1100, 300),
         "color": ZONE_COLORS["TAMANHO_FONTE"],
         "gestures": [],
-        "objects": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "CHANGE_COLOR_MODE",
+        ),
     },
 ]
 
@@ -310,7 +320,7 @@ SCREEN_ZONES = {
             ),
             "objects": [],
         },
-        *FASE1_MATRIX_ZONES,
+        # *FASE1_MATRIX_ZONES,
         *CONFIG_ZONES,
     ],
 }
