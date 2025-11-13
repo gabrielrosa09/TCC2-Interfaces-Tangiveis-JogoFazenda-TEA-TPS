@@ -1,4 +1,6 @@
-pygame==2.5.2
+protobuf==3.20.3
+tensorflow==2.15.0
+mediapipe==0.10.14
 opencv-python==4.9.0.80
 numpy==1.26.4
-mediapipe==0.10.14
+pygame==2.5.2
