@@ -4,6 +4,7 @@ Responsável por gerenciar as zonas ativas, detectar colisões e validar gestos.
 """
 
 from cv.config import SCREEN_ZONES, GAME_STATES
+from typing import Dict, Optional
 
 
 class ZoneManager:
@@ -12,6 +13,8 @@ class ZoneManager:
     def __init__(self):
         self.current_game_state = GAME_STATES["MENU"]
         self.screen_zones = SCREEN_ZONES.copy()
+        # Rastrear objetos detectados em cada zona (para zonas de fase)
+        self.zone_objects: Dict[str, Optional[str]] = {}
 
     def set_game_state(self, state):
         """
@@ -22,6 +25,8 @@ class ZoneManager:
         """
         if state in self.screen_zones:
             self.current_game_state = state
+            # Limpar objetos detectados ao trocar de estado
+            self.zone_objects.clear()
             print(f"Estado do jogo alterado para: {state}")
         else:
             print(f"Estado '{state}' não reconhecido")
@@ -116,3 +121,38 @@ class ZoneManager:
             if zone["name"] == zone_name:
                 return zone
         return None
+    
+    def update_zone_object(self, zone_name: str, object_name: Optional[str]):
+        """
+        Atualiza o objeto detectado em uma zona.
+        
+        Args:
+            zone_name (str): Nome da zona
+            object_name (Optional[str]): Nome do objeto detectado ou None
+        """
+        self.zone_objects[zone_name] = object_name
+    
+    def get_zone_object(self, zone_name: str) -> Optional[str]:
+        """
+        Obtém o objeto detectado em uma zona.
+        
+        Args:
+            zone_name (str): Nome da zona
+        
+        Returns:
+            Optional[str]: Nome do objeto ou None
+        """
+        return self.zone_objects.get(zone_name)
+    
+    def get_all_zone_objects(self) -> Dict[str, Optional[str]]:
+        """
+        Retorna todos os objetos detectados nas zonas.
+        
+        Returns:
+            Dict[str, Optional[str]]: Dicionário {zona: objeto}
+        """
+        return self.zone_objects.copy()
+    
+    def clear_zone_objects(self):
+        """Limpa todos os objetos detectados nas zonas."""
+        self.zone_objects.clear()

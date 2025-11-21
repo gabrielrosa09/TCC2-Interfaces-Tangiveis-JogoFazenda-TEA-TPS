@@ -24,7 +24,7 @@ MIN_TRACKING_CONFIDENCE = 0.5
 # CONFIGURAÇÕES DO MEDIAPIPE - OBJETOS
 # ================================
 OBJECT_MODEL_PATH = "cv/mediapipe_models/efficientdet_lite0.tflite"
-MAX_OBJECT_RESULTS = 5
+MAX_OBJECT_RESULTS = 17
 MIN_OBJECT_DETECTION_CONFIDENCE = 0.3
 
 # ================================
@@ -245,40 +245,28 @@ FASE1_MATRIX_ZONES = [
         "rect": (450, 50, 750, 350),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": get_objects_for_actions(
-            OBJECT_ACTIONS,
-            "FEED_ANIMAL",
-        ),
+        "objects": ["cell phone", "clock"],  # Aceita inputs de energia
     },
     {
         "name": "INPUT2",
         "rect": (450, 650, 750, 950),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": get_objects_for_actions(
-            OBJECT_ACTIONS,
-            "FEED_ANIMAL",
-        ),
+        "objects": ["cell phone", "clock"],  # Aceita inputs de energia
     },
     {
         "name": "GATE1",
         "rect": (850, 350, 1150, 650),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": get_objects_for_actions(
-            OBJECT_ACTIONS,
-            "PLACE_OBJECT",
-        ),
+        "objects": ["toothbrush"],  # Aceita apenas AND gate
     },
     {
         "name": "GATE2",
         "rect": (1250, 350, 1550, 650),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": get_objects_for_actions(
-            OBJECT_ACTIONS,
-            "USE_TOOL",
-        ),
+        "objects": ["banana"],  # Aceita apenas NOT gate
     },
 ]
 
@@ -316,11 +304,11 @@ SCREEN_ZONES = {
             "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
             "color": ZONE_COLORS["GESTOS"],
             "gestures": get_gestures_for_actions(
-                GESTURE_ACTIONS, "GAME_ACTION", "RETURN_MENU", "REPEAT_NARRATION"
+                GESTURE_ACTIONS, "GAME_ACTION", "EXIT_GAME", "REPEAT_NARRATION"
             ),
             "objects": [],
         },
-        # *FASE1_MATRIX_ZONES,
-        *CONFIG_ZONES,
+        *FASE1_MATRIX_ZONES,
+        # *CONFIG_ZONES,
     ],
 }

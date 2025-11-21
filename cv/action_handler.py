@@ -10,6 +10,8 @@ from cv.config import (
     GESTURE_ACTIONS,
     OBJECT_ACTIONS,
 )
+from core.phase_manager import PhaseManager
+from cv.phase_config import OBJECT_TO_GAME_ELEMENT, get_phase_config
 
 
 class ActionHandler:
@@ -22,6 +24,10 @@ class ActionHandler:
         self.recognition_history = []
         self.cooldown_time = ACTION_COOLDOWN_TIME
         self.max_history = GESTURE_HISTORY_SIZE
+        
+        # Gerenciador de fases
+        self.phase_manager = PhaseManager()
+        self.current_phase_id = None
 
     def execute_action(self, recognition_name, zone_name, item_info, recognition_type="gesture"):
         """
@@ -190,33 +196,90 @@ class ActionHandler:
             self.zone_manager.set_game_state("menu")
 
     def _execute_game_action(self):
-        """Executa ação específica do jogo."""
+        """Executa ação específica do jogo (validação de fase)."""
         print("✋ EXECUTANDO AÇÃO DO JOGO...")
-        # Implementar lógica específica do jogo
-        pass
+        
+        # Verificar se estamos em uma fase
+        current_state = self.zone_manager.current_game_state
+        if current_state not in ["fase1"]:
+            print("⚠️ Ação do jogo só funciona durante as fases")
+            return
+        
+        # Determinar qual fase estamos
+        phase_id = 1 if current_state == "fase1" else None
+        if phase_id is None:
+            print("⚠️ Fase não identificada")
+            return
+        
+        # Carregar configuração da fase se necessário
+        if self.current_phase_id != phase_id:
+            phase_config = get_phase_config(phase_id)
+            if phase_config:
+                self.phase_manager.set_phase(phase_config)
+                self.current_phase_id = phase_id
+                print(f"📋 Fase {phase_id} carregada: {phase_config.get('description', '')}")
+            else:
+                print(f"⚠️ Configuração da fase {phase_id} não encontrada")
+                return
+        
+        # Obter objetos detectados nas zonas
+        detected_objects = self.zone_manager.get_all_zone_objects()
+        
+        # Validar a fase
+        success, message, zone_values = self.phase_manager.validate_phase(
+            detected_objects,
+            OBJECT_TO_GAME_ELEMENT
+        )
+        
+        # Exibir resultado no terminal
+        print("=" * 50)
+        print(f"🎮 VALIDAÇÃO DA FASE {phase_id}")
+        print("=" * 50)
+        print(f"Resultado: {message}")
+        print("-" * 50)
+        print("Valores das zonas:")
+        for zone_name, value in zone_values.items():
+            if value is not None:
+                print(f"  {zone_name}: {value}")
+            else:
+                print(f"  {zone_name}: (inválido)")
+        print("=" * 50)
+        
+        # Se o jogador conseguiu, pode avançar para próxima fase
+        if success:
+            print("🎉 PARABÉNS! Você completou a fase!")
+            # Aqui você pode adicionar lógica para avançar para a próxima fase
+        else:
+            print("💪 Continue tentando!")
+    
+    def set_current_phase(self, phase_id: int):
+        """
+        Define a fase atual.
+        
+        Args:
+            phase_id (int): ID da fase
+        """
+        phase_config = get_phase_config(phase_id)
+        if phase_config:
+            self.phase_manager.set_phase(phase_config)
+            self.current_phase_id = phase_id
+            print(f"📋 Fase {phase_id} configurada: {phase_config.get('description', '')}")
+        else:
+            print(f"⚠️ Configuração da fase {phase_id} não encontrada")
+    
+    def get_phase_manager(self):
+        """
+        Retorna o gerenciador de fases.
+        
+        Returns:
+            PhaseManager: Gerenciador de fases
+        """
+        return self.phase_manager
 
     def _repeat_narration(self):
         """Repete a narração atual."""
         print("🔊 REPETINDO NARRAÇÃO...")
         # Implementar repetição da narração
-        pass
-
-    def _feed_animal(self):
-        """Alimenta um animal no jogo."""
-        print("🍎 ALIMENTANDO ANIMAL...")
-        # Implementar lógica de alimentar animal
-        pass
-
-    def _use_tool(self):
-        """Usa uma ferramenta no jogo."""
-        print("🔧 USANDO FERRAMENTA...")
-        # Implementar lógica de usar ferramenta
-        pass
-
-    def _place_object(self):
-        """Coloca um objeto no jogo."""
-        print("📦 COLOCANDO OBJETO...")
-        # Implementar lógica de colocar objeto
         pass
 
     def get_gesture_history(self):
