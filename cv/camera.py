@@ -49,7 +49,7 @@ class GestureCamera:
         self.object_processor = ObjectProcessor(
             self.zone_manager, self.action_handler
         )
-        self.visual_renderer = VisualRenderer(self.zone_manager)
+        self.visual_renderer = VisualRenderer(self.zone_manager, self.action_handler)
 
         # Configurar câmera
         self._setup_camera()

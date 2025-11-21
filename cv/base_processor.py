@@ -13,7 +13,9 @@ class BaseRecognitionProcessor:
     Unifica a lógica de validação temporal para gestos e objetos.
     """
 
-    def __init__(self, zone_manager=None, action_handler=None, recognition_type="unknown"):
+    def __init__(
+        self, zone_manager=None, action_handler=None, recognition_type="unknown"
+    ):
         """
         Inicializa o processador base.
 
@@ -27,12 +29,8 @@ class BaseRecognitionProcessor:
         self.recognition_type = recognition_type
 
         # Rastreamento de tempo para validação
-        self.recognition_start_times = (
-            {}
-        )  # {key: (name, zone_name, start_time)}
-        self.validated_recognitions = (
-            {}
-        )  # {key: (name, zone_name, validated_time)}
+        self.recognition_start_times = {}  # {key: (name, zone_name, start_time)}
+        self.validated_recognitions = {}  # {key: (name, zone_name, validated_time)}
 
         # Estado anterior
         self.previous_state = {}
@@ -119,12 +117,21 @@ class BaseRecognitionProcessor:
             item_key (str): Chave do item
             confidence (float): Confiança da detecção
         """
+        # Zonas de fase não executam ações imediatas (apenas rastreiam objetos)
+        phase_zones = ["INPUT1", "INPUT2", "GATE1", "GATE2"]
+
         if self.action_handler and self.zone_manager:
             # Verificar se o reconhecimento é válido para a zona
             zone = self.zone_manager.get_zone_by_name(zone_name)
             if zone and self.zone_manager.is_recognition_valid_for_zone(
                 recognition_name, zone, self.recognition_type
             ):
+                # Se for uma zona de fase e for um objeto, não executar ação
+                if zone_name in phase_zones and self.recognition_type == "object":
+                    # Apenas logar, não executar ação
+                    return
+
+                # Para outras zonas, executar ação normalmente
                 print(
                     f"Executando ação validada ({self.recognition_type}): {recognition_name} | {zone_name} | {item_key} | Confiança: {confidence:.2f}"
                 )
@@ -190,4 +197,3 @@ class BaseRecognitionProcessor:
         self.recognition_start_times.clear()
         self.validated_recognitions.clear()
         self.previous_state.clear()
-

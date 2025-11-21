@@ -65,6 +65,9 @@ class ObjectProcessor(BaseRecognitionProcessor):
         """Processa os objetos detectados e executa ações se necessário."""
         current_time = time.time()
         currently_detected_objects = set()
+        
+        # Rastrear objetos por zona (para zonas de fase)
+        zone_object_tracking = {}
 
         for i, detection in enumerate(result.detections):
             # Obter categoria e confiança
@@ -87,11 +90,25 @@ class ObjectProcessor(BaseRecognitionProcessor):
 
                 # Detectar zona onde o objeto está
                 zone_name = self._detect_object_zone(detection)
+                
+                if zone_name:
+                    # Rastrear objeto por zona
+                    if zone_name not in zone_object_tracking:
+                        zone_object_tracking[zone_name] = []
+                    zone_object_tracking[zone_name].append({
+                        "name": object_name,
+                        "confidence": confidence,
+                        "key": object_key
+                    })
 
                 # Processar validação de objeto com tempo
                 self._process_recognition_validation(
                     object_name, zone_name, object_key, current_time, confidence
                 )
+        
+        # Atualizar objetos detectados nas zonas (para zonas de fase)
+        if self.zone_manager:
+            self._update_zone_objects(zone_object_tracking)
 
         # Limpar rastreamento de objetos que não estão mais sendo detectados
         self._cleanup_undetected_items(currently_detected_objects)
@@ -116,6 +133,34 @@ class ObjectProcessor(BaseRecognitionProcessor):
 
         zone = self.zone_manager.get_zone_for_point(center_x, center_y)
         return zone["name"] if zone else None
+    
+    def _update_zone_objects(self, zone_object_tracking):
+        """
+        Atualiza os objetos detectados em cada zona no zone_manager.
+        Para zonas de fase (INPUT1, INPUT2, GATE1, GATE2), apenas rastreia sem executar ações.
+        
+        Args:
+            zone_object_tracking (dict): Dicionário {zona: lista de objetos detectados}
+        """
+        # Zonas de fase (não executam ações imediatas)
+        phase_zones = ["INPUT1", "INPUT2", "GATE1", "GATE2"]
+        
+        # Obter todas as zonas atuais
+        current_zones = self.zone_manager.get_current_zones()
+        zone_names = [zone["name"] for zone in current_zones]
+        
+        # Atualizar objetos nas zonas
+        for zone_name in zone_names:
+            if zone_name in phase_zones:
+                # Para zonas de fase, rastrear o objeto mais confiante
+                if zone_name in zone_object_tracking:
+                    # Pegar o objeto com maior confiança
+                    objects = zone_object_tracking[zone_name]
+                    best_object = max(objects, key=lambda x: x["confidence"])
+                    self.zone_manager.update_zone_object(zone_name, best_object["name"])
+                else:
+                    # Nenhum objeto detectado nesta zona
+                    self.zone_manager.update_zone_object(zone_name, None)
 
     def detect_async(self, mp_image, timestamp_ms):
         """

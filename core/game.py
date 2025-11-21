@@ -26,12 +26,13 @@ from cv.config import (
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, game_controller=None):
         pygame.init()
         self.screen = pygame.display.set_mode((LARGURA, ALTURA))
         pygame.display.set_caption("A Vaca Fazendeira e os ETs")
         self.clock = pygame.time.Clock()
         self.running = True
+        self.game_controller = game_controller  # Referência ao game_controller
 
         # Inicializar o overlay de brilho com o valor padrão
         default_opacity = BRIGHTNESS_LEVELS.get(DEFAULT_BRIGHTNESS_OBJECT, 0)

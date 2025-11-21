@@ -15,7 +15,7 @@ class GameController:
     def start_game(self):
         """Inicia o jogo em uma thread separada"""
         try:
-            self.game = Game()
+            self.game = Game(game_controller=self)
             print("🎮 Jogo iniciado")
             self.game.run()
             print("🎮 Jogo encerrado")

@@ -18,8 +18,9 @@ from cv.config import (
 class VisualRenderer:
     """Renderiza elementos visuais para o reconhecimento de gestos."""
 
-    def __init__(self, zone_manager=None):
+    def __init__(self, zone_manager=None, action_handler=None):
         self.zone_manager = zone_manager
+        self.action_handler = action_handler
 
     def render_frame(
         self,
