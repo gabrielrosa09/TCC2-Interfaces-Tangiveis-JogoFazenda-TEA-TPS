@@ -8,15 +8,7 @@ class GestureAction:
     """Classe que representa uma ação baseada em gesto."""
 
     def __init__(self, name, gestures, action_func, description=""):
-        """
-        Inicializa uma ação de gesto.
-
-        Args:
-            name (str): Nome da ação
-            gestures (list): Lista de gestos que ativam esta ação
-            action_func (callable): Função a ser executada quando a ação for ativada
-            description (str): Descrição da ação
-        """
+        """Inicializa uma ação de gesto."""
         self.name = name
         self.gestures = gestures if isinstance(gestures, list) else [gestures]
         self.action_func = action_func
@@ -39,16 +31,7 @@ class GestureAction:
 
 
 def get_gestures_for_actions(gesture_actions_dict, *action_keys):
-    """
-    Retorna uma lista de gestos para as ações especificadas.
-
-    Args:
-        gesture_actions_dict (dict): Dicionário de ações de gesto
-        *action_keys: Chaves das ações
-
-    Returns:
-        list: Lista de gestos únicos
-    """
+    """Retorna uma lista de gestos para as ações especificadas."""
     gestures = []
     for action_key in action_keys:
         if action_key in gesture_actions_dict:

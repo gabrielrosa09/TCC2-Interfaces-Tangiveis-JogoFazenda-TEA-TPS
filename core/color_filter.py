@@ -10,14 +10,7 @@ class ColorFilter:
     """Gerencia o filtro de cor da interface do jogo."""
 
     def __init__(self, screen_width, screen_height, default_mode="color"):
-        """
-        Inicializa o filtro de cor.
-
-        Args:
-            screen_width (int): Largura da tela
-            screen_height (int): Altura da tela
-            default_mode (str): Modo inicial ("color" ou "grayscale")
-        """
+        """Inicializa o filtro de cor."""
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.current_mode = default_mode
@@ -26,56 +19,28 @@ class ColorFilter:
         self.temp_surface = pygame.Surface((screen_width, screen_height))
 
     def set_mode(self, mode):
-        """
-        Define o modo de cor.
-
-        Args:
-            mode (str): Modo de cor ("color" ou "grayscale")
-        """
+        """Define o modo de cor."""
         if mode in ["color", "grayscale"]:
             self.current_mode = mode
             mode_name = "COLORIDO" if mode == "color" else "PRETO E BRANCO"
-            print(f"🎨 Modo de cor definido para: {mode_name}")
+            print(f"[COR] Modo de cor definido para: {mode_name}")
         else:
-            print(f"⚠️ Modo de cor inválido: {mode}")
+            print(f"[AVISO] Modo de cor invalido: {mode}")
 
     def get_mode(self):
-        """
-        Retorna o modo de cor atual.
-
-        Returns:
-            str: Modo de cor atual ("color" ou "grayscale")
-        """
+        """Retorna o modo de cor atual."""
         return self.current_mode
 
     def is_grayscale(self):
-        """
-        Verifica se está em modo preto e branco.
-
-        Returns:
-            bool: True se estiver em modo grayscale
-        """
+        """Verifica se está em modo preto e branco."""
         return self.current_mode == "grayscale"
 
     def is_color(self):
-        """
-        Verifica se está em modo colorido.
-
-        Returns:
-            bool: True se estiver em modo color
-        """
+        """Verifica se está em modo colorido."""
         return self.current_mode == "color"
 
     def apply_filter(self, screen):
-        """
-        Aplica o filtro de cor na tela.
-        
-        Este método deve ser chamado após desenhar todo o conteúdo da tela,
-        mas antes do flip/update final.
-
-        Args:
-            screen (pygame.Surface): Superfície da tela onde o filtro será aplicado
-        """
+        """Aplica o filtro de cor na tela."""
         if self.current_mode == "grayscale":
             # Copiar o conteúdo atual da tela
             self.temp_surface.blit(screen, (0, 0))
@@ -84,13 +49,7 @@ class ColorFilter:
             self._convert_to_grayscale(screen, self.temp_surface)
 
     def _convert_to_grayscale(self, dest_surface, source_surface):
-        """
-        Converte uma superfície para escala de cinza.
-
-        Args:
-            dest_surface (pygame.Surface): Superfície de destino
-            source_surface (pygame.Surface): Superfície de origem
-        """
+        """Converte uma superfície para escala de cinza."""
         # Obter array de pixels
         width, height = source_surface.get_size()
         
@@ -109,14 +68,7 @@ class ColorFilter:
                 dest_surface.set_at((x, y), (gray, gray, gray, a))
 
     def apply_filter_optimized(self, screen):
-        """
-        Aplica o filtro de cor na tela de forma otimizada.
-        
-        Versão otimizada usando surfarray para melhor performance.
-
-        Args:
-            screen (pygame.Surface): Superfície da tela onde o filtro será aplicado
-        """
+        """Aplica o filtro de cor na tela de forma otimizada."""
         if self.current_mode == "grayscale":
             try:
                 import numpy as np
@@ -139,21 +91,11 @@ class ColorFilter:
                 
             except ImportError:
                 # Se numpy não estiver disponível, usar método padrão
-                print("⚠️ NumPy não disponível, usando método padrão (mais lento)")
+                print("[AVISO] NumPy nao disponivel, usando metodo padrao (mais lento)")
                 self.apply_filter(screen)
 
     def convert_surface_to_grayscale(self, surface):
-        """
-        Converte uma superfície específica para escala de cinza.
-        
-        Útil para pré-processar imagens.
-
-        Args:
-            surface (pygame.Surface): Superfície a ser convertida
-
-        Returns:
-            pygame.Surface: Nova superfície em escala de cinza
-        """
+        """Converte uma superfície específica para escala de cinza."""
         width, height = surface.get_size()
         gray_surface = pygame.Surface((width, height))
         gray_surface = gray_surface.convert_alpha()

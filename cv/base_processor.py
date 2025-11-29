@@ -16,14 +16,7 @@ class BaseRecognitionProcessor:
     def __init__(
         self, zone_manager=None, action_handler=None, recognition_type="unknown"
     ):
-        """
-        Inicializa o processador base.
-
-        Args:
-            zone_manager: Gerenciador de zonas
-            action_handler: Gerenciador de ações
-            recognition_type: Tipo de reconhecimento ("gesture" ou "object")
-        """
+        """Inicializa o processador base."""
         self.zone_manager = zone_manager
         self.action_handler = action_handler
         self.recognition_type = recognition_type
@@ -38,16 +31,7 @@ class BaseRecognitionProcessor:
     def _process_recognition_validation(
         self, recognition_name, zone_name, item_key, current_time, confidence=1.0
     ):
-        """
-        Processa a validação de reconhecimento com base no tempo de detecção.
-
-        Args:
-            recognition_name (str): Nome do gesto/objeto detectado
-            zone_name (str): Nome da zona onde foi detectado
-            item_key (str): Chave do item (ex: "Left_hand" ou "cup_1")
-            current_time (float): Timestamp atual
-            confidence (float): Confiança da detecção (0-1)
-        """
+        """Processa a validação de reconhecimento com base no tempo de detecção."""
         if not zone_name:
             # Se não está em uma zona válida, limpar rastreamento
             self._clear_recognition_tracking(item_key)
@@ -108,15 +92,7 @@ class BaseRecognitionProcessor:
     def _execute_validated_recognition(
         self, recognition_name, zone_name, item_key, confidence=1.0
     ):
-        """
-        Executa um reconhecimento que foi validado.
-
-        Args:
-            recognition_name (str): Nome do gesto/objeto
-            zone_name (str): Nome da zona
-            item_key (str): Chave do item
-            confidence (float): Confiança da detecção
-        """
+        """Executa um reconhecimento que foi validado."""
         # Zonas de fase não executam ações imediatas (apenas rastreiam objetos)
         phase_zones = ["INPUT1", "INPUT2", "GATE1", "GATE2"]
 
@@ -140,12 +116,7 @@ class BaseRecognitionProcessor:
                 )
 
     def _clear_recognition_tracking(self, item_key):
-        """
-        Limpa o rastreamento de reconhecimentos para um item específico.
-
-        Args:
-            item_key (str): Chave do item
-        """
+        """Limpa o rastreamento de reconhecimentos para um item específico."""
         if item_key in self.recognition_start_times:
             del self.recognition_start_times[item_key]
 
@@ -159,12 +130,7 @@ class BaseRecognitionProcessor:
             del self.validated_recognitions[key]
 
     def _cleanup_undetected_items(self, currently_detected_items):
-        """
-        Limpa o rastreamento de itens que não estão mais sendo detectados.
-
-        Args:
-            currently_detected_items (set): Conjunto de itens atualmente detectados
-        """
+        """Limpa o rastreamento de itens que não estão mais sendo detectados."""
         # Encontrar itens que estavam sendo rastreados mas não estão mais detectados
         tracked_items = set(self.recognition_start_times.keys())
         items_to_clean = tracked_items - currently_detected_items
@@ -174,15 +140,7 @@ class BaseRecognitionProcessor:
             self._clear_recognition_tracking(item_key)
 
     def get_validation_progress(self, item_key):
-        """
-        Retorna o progresso de validação de um item (0.0 a 1.0).
-
-        Args:
-            item_key (str): Chave do item
-
-        Returns:
-            float: Progresso de validação (0.0 a 1.0)
-        """
+        """Retorna o progresso de validação de um item (0.0 a 1.0)."""
         if item_key not in self.recognition_start_times:
             return 0.0
 

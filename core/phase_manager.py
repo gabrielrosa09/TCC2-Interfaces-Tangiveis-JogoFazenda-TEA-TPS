@@ -18,12 +18,7 @@ class PhaseManager:
         self.show_results = False
     
     def set_phase(self, phase_config: Dict[str, Any]):
-        """
-        Define a fase atual.
-        
-        Args:
-            phase_config (dict): Configuração da fase
-        """
+        """Define a fase atual."""
         self.current_phase = phase_config
         self.clear_validation()
     
@@ -38,16 +33,7 @@ class PhaseManager:
         detected_objects: Dict[str, Optional[str]],
         object_mapping: Dict[str, str]
     ) -> Tuple[bool, str, Dict[str, Optional[int]]]:
-        """
-        Valida a fase atual com base nos objetos detectados.
-        
-        Args:
-            detected_objects (dict): Dicionário {zona: objeto_detectado}
-            object_mapping (dict): Mapeamento de objetos detectados para elementos do jogo
-        
-        Returns:
-            Tuple[bool, str, Dict]: (sucesso, mensagem, valores das zonas)
-        """
+        """Valida a fase atual com base nos objetos detectados."""
         if not self.current_phase:
             return False, "Nenhuma fase configurada", {}
         
@@ -112,33 +98,15 @@ class PhaseManager:
             return False, "Você ainda não conseguiu! Resultado incorreto.", zone_values
     
     def get_validation_results(self) -> Dict[str, Optional[int]]:
-        """
-        Retorna os resultados da última validação.
-        
-        Returns:
-            Dict[str, Optional[int]]: Valores calculados para cada zona
-        """
+        """Retorna os resultados da última validação."""
         return self.last_validation_results.copy()
     
     def should_show_results(self) -> bool:
-        """
-        Verifica se os resultados devem ser exibidos na tela.
-        
-        Returns:
-            bool: True se deve mostrar resultados
-        """
+        """Verifica se os resultados devem ser exibidos na tela."""
         return self.show_results
     
     def get_zone_result_position(self, zone_config: Dict[str, Any]) -> Optional[Tuple[int, int]]:
-        """
-        Obtém a posição onde o resultado deve ser exibido para uma zona.
-        
-        Args:
-            zone_config (dict): Configuração da zona
-        
-        Returns:
-            Optional[Tuple[int, int]]: Posição (x, y) ou None se não configurada
-        """
+        """Obtém a posição onde o resultado deve ser exibido para uma zona."""
         result_pos = zone_config.get("result_position")
         if result_pos:
             return tuple(result_pos)
@@ -154,15 +122,7 @@ class PhaseManager:
         return None
     
     def get_zone_marker_position(self, zone_config: Dict[str, Any]) -> Optional[Tuple[int, int]]:
-        """
-        Obtém a posição onde o marcador de detecção deve ser exibido para uma zona.
-        
-        Args:
-            zone_config (dict): Configuração da zona
-        
-        Returns:
-            Optional[Tuple[int, int]]: Posição (x, y) ou None se não configurada
-        """
+        """Obtém a posição onde o marcador de detecção deve ser exibido para uma zona."""
         marker_pos = zone_config.get("marker_position")
         if marker_pos:
             return tuple(marker_pos)
@@ -176,11 +136,6 @@ class PhaseManager:
         return None
     
     def get_current_phase_info(self) -> Optional[Dict[str, Any]]:
-        """
-        Retorna informações da fase atual.
-        
-        Returns:
-            Optional[Dict]: Informações da fase ou None
-        """
+        """Retorna informações da fase atual."""
         return self.current_phase
 

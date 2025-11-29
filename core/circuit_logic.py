@@ -38,12 +38,7 @@ class AndGate(Gate):
         super().__init__("AND")
     
     def evaluate(self) -> Optional[int]:
-        """
-        Avalia AND: retorna 1 apenas se todos os inputs forem 1.
-        
-        Returns:
-            Optional[int]: 1 se todos inputs são 1, 0 caso contrário, None se inválido
-        """
+        """Avalia AND: retorna 1 apenas se todos os inputs forem 1."""
         if not self.inputs or not self.has_valid_inputs():
             return None
         
@@ -57,12 +52,7 @@ class OrGate(Gate):
         super().__init__("OR")
     
     def evaluate(self) -> Optional[int]:
-        """
-        Avalia OR: retorna 1 se pelo menos um input for 1.
-        
-        Returns:
-            Optional[int]: 1 se algum input é 1, 0 caso contrário, None se inválido
-        """
+        """Avalia OR: retorna 1 se pelo menos um input for 1."""
         if not self.inputs or not self.has_valid_inputs():
             return None
         
@@ -76,12 +66,7 @@ class NotGate(Gate):
         super().__init__("NOT")
     
     def evaluate(self) -> Optional[int]:
-        """
-        Avalia NOT: inverte o input.
-        
-        Returns:
-            Optional[int]: 1 se input é 0, 0 se input é 1, None se inválido
-        """
+        """Avalia NOT: inverte o input."""
         if len(self.inputs) != 1 or not self.has_valid_inputs():
             return None
         
@@ -103,15 +88,7 @@ class CircuitEvaluator:
         self.zone_objects: Dict[str, Optional[str]] = {}
     
     def create_gate(self, gate_type: str) -> Optional[Gate]:
-        """
-        Cria uma porta lógica baseada no tipo.
-        
-        Args:
-            gate_type (str): Tipo da porta (and_gate, or_gate, not_gate)
-        
-        Returns:
-            Optional[Gate]: Instância da porta ou None se tipo inválido
-        """
+        """Cria uma porta lógica baseada no tipo."""
         gate_class = self.GATE_TYPES.get(gate_type)
         if gate_class:
             return gate_class()
@@ -125,19 +102,7 @@ class CircuitEvaluator:
         input_values: Dict[str, int],
         object_mapping: Dict[str, str]
     ) -> Tuple[Optional[int], bool, str]:
-        """
-        Avalia uma zona específica do circuito.
-        
-        Args:
-            zone_name (str): Nome da zona
-            zone_config (dict): Configuração da zona
-            detected_object (str): Objeto detectado na zona
-            input_values (dict): Valores dos inputs (solar, eolico)
-            object_mapping (dict): Mapeamento de objetos detectados para elementos do jogo
-        
-        Returns:
-            Tuple[Optional[int], bool, str]: (valor calculado, é válido, mensagem de erro)
-        """
+        """Avalia uma zona específica do circuito."""
         # Verificar se há objeto detectado
         if not detected_object:
             return None, False, f"Zona {zone_name} está vazia"
@@ -205,19 +170,7 @@ class CircuitEvaluator:
         object_mapping: Dict[str, str],
         evaluation_order: List[str]
     ) -> Tuple[Dict[str, Optional[int]], List[str]]:
-        """
-        Avalia todo o circuito seguindo a ordem de avaliação.
-        
-        Args:
-            zones_config (list): Lista de configurações das zonas
-            detected_objects (dict): Dicionário {zona: objeto_detectado}
-            input_values (dict): Valores dos inputs (solar, eolico)
-            object_mapping (dict): Mapeamento de objetos para elementos do jogo
-            evaluation_order (list): Ordem de avaliação das zonas
-        
-        Returns:
-            Tuple[Dict[str, Optional[int]], List[str]]: (valores das zonas, erros)
-        """
+        """Avalia todo o circuito seguindo a ordem de avaliação."""
         self.zone_values = {}
         self.zone_objects = detected_objects.copy()
         errors = []
@@ -250,14 +203,6 @@ class CircuitEvaluator:
         return self.zone_values, errors
     
     def get_final_output(self, output_zone: str) -> Optional[int]:
-        """
-        Obtém o valor final do circuito (zona de saída).
-        
-        Args:
-            output_zone (str): Nome da zona de saída
-        
-        Returns:
-            Optional[int]: Valor da saída ou None se inválido
-        """
+        """Obtém o valor final do circuito (zona de saída)."""
         return self.zone_values.get(output_zone)
 

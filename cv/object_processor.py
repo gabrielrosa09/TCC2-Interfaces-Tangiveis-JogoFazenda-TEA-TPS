@@ -47,14 +47,7 @@ class ObjectProcessor(BaseRecognitionProcessor):
         self.detector = self.ObjectDetector.create_from_options(options)
 
     def _process_result(self, result, output_image: mp.Image, timestamp_ms: int):
-        """
-        Callback do MediaPipe para processar resultados de detecção.
-
-        Args:
-            result: Resultado da detecção de objetos
-            output_image: Imagem de saída do MediaPipe
-            timestamp_ms: Timestamp do frame
-        """
+        """Callback do MediaPipe para processar resultados de detecção."""
         # Atualizar estado atual
         self.current_detections = result.detections
 
@@ -114,15 +107,7 @@ class ObjectProcessor(BaseRecognitionProcessor):
         self._cleanup_undetected_items(currently_detected_objects)
 
     def _detect_object_zone(self, detection):
-        """
-        Detecta em qual zona o objeto está localizado.
-
-        Args:
-            detection: Detecção do objeto com bounding box
-
-        Returns:
-            str or None: Nome da zona ou None se não estiver em nenhuma zona
-        """
+        """Detecta em qual zona o objeto está localizado."""
         if not detection.bounding_box or not self.zone_manager:
             return None
 
@@ -135,13 +120,7 @@ class ObjectProcessor(BaseRecognitionProcessor):
         return zone["name"] if zone else None
     
     def _update_zone_objects(self, zone_object_tracking):
-        """
-        Atualiza os objetos detectados em cada zona no zone_manager.
-        Para zonas de fase (INPUT1, INPUT2, GATE1, GATE2), apenas rastreia sem executar ações.
-        
-        Args:
-            zone_object_tracking (dict): Dicionário {zona: lista de objetos detectados}
-        """
+        """Atualiza os objetos detectados em cada zona no zone_manager. Para zonas de fase (INPUT1, INPUT2, GATE1, GATE2), apenas rastreia sem executar ações."""
         # Zonas de fase (não executam ações imediatas)
         phase_zones = ["INPUT1", "INPUT2", "GATE1", "GATE2"]
         
@@ -163,32 +142,16 @@ class ObjectProcessor(BaseRecognitionProcessor):
                     self.zone_manager.update_zone_object(zone_name, None)
 
     def detect_async(self, mp_image, timestamp_ms):
-        """
-        Processa uma imagem de forma assíncrona.
-
-        Args:
-            mp_image: Imagem do MediaPipe
-            timestamp_ms: Timestamp do frame
-        """
+        """Processa uma imagem de forma assíncrona."""
         if self.detector:
             self.detector.detect_async(mp_image, timestamp_ms)
 
     def get_current_detections(self):
-        """
-        Retorna as detecções atuais de objetos.
-
-        Returns:
-            list: Lista de detecções atuais
-        """
+        """Retorna as detecções atuais de objetos."""
         return self.current_detections
 
     def get_filtered_detections(self):
-        """
-        Retorna apenas as detecções de objetos suportados com confiança suficiente.
-
-        Returns:
-            list: Lista de detecções filtradas
-        """
+        """Retorna apenas as detecções de objetos suportados com confiança suficiente."""
         filtered = []
         for detection in self.current_detections:
             if detection.categories:
@@ -204,15 +167,7 @@ class ObjectProcessor(BaseRecognitionProcessor):
         return filtered
 
     def get_detection_info(self, detection):
-        """
-        Extrai informações de uma detecção.
-
-        Args:
-            detection: Detecção do MediaPipe
-
-        Returns:
-            dict: Informações da detecção (nome, confiança, bbox, zona)
-        """
+        """Extrai informações de uma detecção."""
         if not detection.categories:
             return None
 

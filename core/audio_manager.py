@@ -11,14 +11,7 @@ class AudioManager:
     """Gerencia o sistema de áudio do jogo."""
 
     def __init__(self, background_music_path=None, default_volume=1.0, background_music_base_volume=1.0):
-        """
-        Inicializa o gerenciador de áudio.
-
-        Args:
-            background_music_path (str): Caminho para o arquivo de música de fundo
-            default_volume (float): Volume geral inicial (0.0 a 1.0)
-            background_music_base_volume (float): Volume base da música de fundo (0.0 a 1.0)
-        """
+        """Inicializa o gerenciador de áudio."""
         # Inicializar o mixer do pygame se ainda não foi inicializado
         if not pygame.mixer.get_init():
             pygame.mixer.init()
@@ -37,12 +30,7 @@ class AudioManager:
             self.load_background_music(background_music_path)
 
     def load_background_music(self, music_path):
-        """
-        Carrega a música de fundo.
-
-        Args:
-            music_path (str): Caminho para o arquivo de música
-        """
+        """Carrega a música de fundo."""
         try:
             if os.path.exists(music_path):
                 pygame.mixer.music.load(music_path)
@@ -51,59 +39,47 @@ class AudioManager:
                 pygame.mixer.music.set_volume(final_volume)
                 self.is_music_loaded = True
                 self.background_music_path = music_path
-                print(f"🎵 Música de fundo carregada: {music_path}")
+                print(f"[AUDIO] Musica de fundo carregada: {music_path}")
                 print(f"   Volume base: {self.background_music_base_volume * 100:.1f}% | Volume geral: {self.current_volume * 100:.0f}% | Volume final: {final_volume * 100:.2f}%")
             else:
-                print(f"⚠️ Arquivo de música não encontrado: {music_path}")
+                print(f"[AVISO] Arquivo de musica nao encontrado: {music_path}")
                 self.is_music_loaded = False
         except pygame.error as e:
-            print(f"❌ Erro ao carregar música: {e}")
+            print(f"[ERRO] Erro ao carregar musica: {e}")
             self.is_music_loaded = False
 
     def play_background_music(self, loops=-1, start_position=0.0):
-        """
-        Inicia a reprodução da música de fundo.
-
-        Args:
-            loops (int): Número de repetições (-1 para loop infinito)
-            start_position (float): Posição inicial em segundos
-        """
+        """Inicia a reprodução da música de fundo."""
         if self.is_music_loaded:
             try:
                 pygame.mixer.music.play(loops=loops, start=start_position)
                 self.is_playing = True
-                print(f"▶️ Música de fundo iniciada (volume: {self.current_volume * 100:.0f}%)")
+                print(f"[AUDIO] Musica de fundo iniciada (volume: {self.current_volume * 100:.0f}%)")
             except pygame.error as e:
-                print(f"❌ Erro ao tocar música: {e}")
+                print(f"[ERRO] Erro ao tocar musica: {e}")
                 self.is_playing = False
         else:
-            print("⚠️ Nenhuma música carregada para tocar")
+            print("[AVISO] Nenhuma musica carregada para tocar")
 
     def stop_background_music(self):
         """Para a música de fundo."""
         pygame.mixer.music.stop()
         self.is_playing = False
-        print("⏹️ Música de fundo parada")
+        print("[AUDIO] Musica de fundo parada")
 
     def pause_background_music(self):
         """Pausa a música de fundo."""
         if self.is_playing:
             pygame.mixer.music.pause()
-            print("⏸️ Música de fundo pausada")
+            print("[AUDIO] Musica de fundo pausada")
 
     def unpause_background_music(self):
         """Retoma a música de fundo pausada."""
         pygame.mixer.music.unpause()
-        print("▶️ Música de fundo retomada")
+        print("[AUDIO] Musica de fundo retomada")
 
     def set_volume(self, volume):
-        """
-        Define o volume geral do jogo.
-        Atualiza o volume da música de fundo e de todos os sons proporcionalmente.
-
-        Args:
-            volume (float): Valor de volume geral (0.0 a 1.0)
-        """
+        """Define o volume geral do jogo. Atualiza o volume da música de fundo e de todos os sons proporcionalmente."""
         # Garantir que o valor está no intervalo válido
         self.current_volume = max(0.0, min(1.0, volume))
         
@@ -111,57 +87,28 @@ class AudioManager:
         final_music_volume = self.background_music_base_volume * self.current_volume
         pygame.mixer.music.set_volume(final_music_volume)
         
-        print(f"🔊 Volume geral definido para: {self.current_volume * 100:.0f}%")
-        print(f"   Música de fundo: {final_music_volume * 100:.2f}% (base: {self.background_music_base_volume * 100:.1f}%)")
+        print(f"[VOLUME] Volume geral definido para: {self.current_volume * 100:.0f}%")
+        print(f"   Musica de fundo: {final_music_volume * 100:.2f}% (base: {self.background_music_base_volume * 100:.1f}%)")
 
     def get_volume(self):
-        """
-        Retorna o volume atual.
-
-        Returns:
-            float: Volume atual (0.0 a 1.0)
-        """
+        """Retorna o volume atual."""
         return self.current_volume
 
     def get_volume_percentage(self):
-        """
-        Retorna o volume atual em porcentagem.
-
-        Returns:
-            float: Volume em porcentagem (0-100)
-        """
+        """Retorna o volume atual em porcentagem."""
         return self.current_volume * 100
 
     def is_music_playing(self):
-        """
-        Verifica se a música está tocando.
-
-        Returns:
-            bool: True se a música está tocando
-        """
+        """Verifica se a música está tocando."""
         return pygame.mixer.music.get_busy()
 
     def fadeout_music(self, milliseconds):
-        """
-        Diminui gradualmente o volume da música até parar.
-
-        Args:
-            milliseconds (int): Tempo em milissegundos para o fadeout
-        """
+        """Diminui gradualmente o volume da música até parar."""
         pygame.mixer.music.fadeout(milliseconds)
         print(f"🔉 Fadeout da música em {milliseconds}ms")
 
     def play_sound_effect(self, sound_path, base_volume=1.0):
-        """
-        Toca um efeito sonoro.
-
-        Args:
-            sound_path (str): Caminho para o arquivo de som
-            base_volume (float): Volume base do som (0.0 a 1.0)
-
-        Returns:
-            pygame.mixer.Sound or None: Objeto Sound ou None se houver erro
-        """
+        """Toca um efeito sonoro."""
         try:
             if os.path.exists(sound_path):
                 sound = pygame.mixer.Sound(sound_path)
@@ -169,25 +116,18 @@ class AudioManager:
                 final_volume = base_volume * self.current_volume
                 sound.set_volume(final_volume)
                 sound.play()
-                print(f"🔔 Efeito sonoro tocado: {sound_path}")
+                print(f"[AUDIO] Efeito sonoro tocado: {sound_path}")
                 print(f"   Volume base: {base_volume * 100:.1f}% | Volume geral: {self.current_volume * 100:.0f}% | Volume final: {final_volume * 100:.2f}%")
                 return sound
             else:
-                print(f"⚠️ Arquivo de som não encontrado: {sound_path}")
+                print(f"[AVISO] Arquivo de som nao encontrado: {sound_path}")
                 return None
         except pygame.error as e:
-            print(f"❌ Erro ao tocar efeito sonoro: {e}")
+            print(f"[ERRO] Erro ao tocar efeito sonoro: {e}")
             return None
     
     def register_sound(self, sound_name, sound_path, base_volume=1.0):
-        """
-        Registra um som com seu volume base.
-
-        Args:
-            sound_name (str): Nome identificador do som
-            sound_path (str): Caminho para o arquivo de som
-            base_volume (float): Volume base do som (0.0 a 1.0)
-        """
+        """Registra um som com seu volume base."""
         self.sound_base_volumes[sound_name] = {
             "path": sound_path,
             "base_volume": base_volume
@@ -195,27 +135,19 @@ class AudioManager:
         print(f"📝 Som registrado: {sound_name} (base: {base_volume * 100:.1f}%)")
     
     def play_registered_sound(self, sound_name):
-        """
-        Toca um som previamente registrado.
-
-        Args:
-            sound_name (str): Nome do som registrado
-
-        Returns:
-            pygame.mixer.Sound or None: Objeto Sound ou None se houver erro
-        """
+        """Toca um som previamente registrado."""
         if sound_name in self.sound_base_volumes:
             sound_info = self.sound_base_volumes[sound_name]
             return self.play_sound_effect(sound_info["path"], sound_info["base_volume"])
         else:
-            print(f"⚠️ Som '{sound_name}' não está registrado")
+            print(f"[AVISO] Som '{sound_name}' nao esta registrado")
             return None
 
     def cleanup(self):
         """Limpa recursos do gerenciador de áudio."""
         self.stop_background_music()
         pygame.mixer.quit()
-        print("🔇 AudioManager limpo")
+        print("[AUDIO] AudioManager limpo")
 
     def __del__(self):
         """Destrutor para garantir limpeza de recursos."""
