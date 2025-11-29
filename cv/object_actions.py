@@ -8,15 +8,7 @@ class ObjectAction:
     """Classe que representa uma ação baseada em detecção de objeto."""
 
     def __init__(self, name, objects, action_func, description=""):
-        """
-        Inicializa uma ação de objeto.
-
-        Args:
-            name (str): Nome da ação
-            objects (list): Lista de objetos que ativam esta ação
-            action_func (callable): Função a ser executada quando a ação for ativada
-            description (str): Descrição da ação
-        """
+        """Inicializa uma ação de objeto."""
         self.name = name
         self.objects = objects if isinstance(objects, list) else [objects]
         self.action_func = action_func
@@ -39,16 +31,7 @@ class ObjectAction:
 
 
 def get_objects_for_actions(object_actions_dict, *action_keys):
-    """
-    Retorna uma lista de objetos para as ações especificadas.
-
-    Args:
-        object_actions_dict (dict): Dicionário de ações de objeto
-        *action_keys: Chaves das ações
-
-    Returns:
-        list: Lista de objetos únicos
-    """
+    """Retorna uma lista de objetos para as ações especificadas."""
     objects = []
     for action_key in action_keys:
         if action_key in object_actions_dict:

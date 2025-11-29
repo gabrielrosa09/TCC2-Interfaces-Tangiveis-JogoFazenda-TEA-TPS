@@ -136,41 +136,52 @@ RECOGNITION_VALIDATION_TIME = 2.0  # segundos para validar gesto/objeto
 # AÇÕES DE GESTO CONFIGURADAS
 # ================================
 GESTURE_ACTIONS = {
-    "START_GAME": GestureAction(
-        name="START_GAME",
-        gestures=["ILoveYou"],
-        action_func="_start_game",
-        description="Inicia o jogo",
+    # Ações de Tutorial - Zona Esquerda
+    "TUTORIAL_PREVIOUS": GestureAction(
+        name="TUTORIAL_PREVIOUS",
+        gestures=["Victory"],
+        action_func="_tutorial_previous_cutscene",
+        description="Volta à cutscene anterior do tutorial",
     ),
-    "OPEN_TUTORIAL": GestureAction(
-        name="OPEN_TUTORIAL",
+    # Ações de Tutorial - Zona Direita
+    "TUTORIAL_NEXT": GestureAction(
+        name="TUTORIAL_NEXT",
+        gestures=["Victory"],
+        action_func="_tutorial_next_cutscene",
+        description="Avança para a próxima cutscene do tutorial",
+    ),
+    "TUTORIAL_SKIP": GestureAction(
+        name="TUTORIAL_SKIP",
         gestures=["Closed_Fist"],
-        action_func="_open_tutorial",
-        description="Abre o tutorial",
+        action_func="_tutorial_skip",
+        description="Pula o tutorial e vai para a fase",
     ),
-    "EXIT_GAME": GestureAction(
-        name="EXIT_GAME",
+    # Ações de Fase - Zona Esquerda
+    "PHASE_RETURN_TUTORIAL": GestureAction(
+        name="PHASE_RETURN_TUTORIAL",
         gestures=["Victory"],
-        action_func="_exit_game",
-        description="Sai do jogo",
+        action_func="_phase_return_to_tutorial",
+        description="Volta para o tutorial (primeira cutscene)",
     ),
-    "RETURN_MENU": GestureAction(
-        name="RETURN_MENU",
-        gestures=["Victory"],
-        action_func="_return_to_menu",
-        description="Volta ao menu principal",
-    ),
-    "GAME_ACTION": GestureAction(
-        name="GAME_ACTION",
-        gestures=["Open_Palm"],
-        action_func="_execute_game_action",
-        description="Executa ação do jogo",
-    ),
-    "REPEAT_NARRATION": GestureAction(
-        name="REPEAT_NARRATION",
+    # Ações de Fase - Zona Direita
+    "PHASE_REPEAT_NARRATION": GestureAction(
+        name="PHASE_REPEAT_NARRATION",
         gestures=["Pointing_Up"],
         action_func="_repeat_narration",
-        description="Repete a narração",
+        description="Repete a narração da fase",
+    ),
+    "PHASE_VALIDATE": GestureAction(
+        name="PHASE_VALIDATE",
+        gestures=["Open_Palm"],
+        action_func="_execute_game_action",
+        description="Valida a lógica booleana da fase",
+    ),
+    # Ação Global - Zona Esquerda
+    "EXIT_GAME": GestureAction(
+        name="EXIT_GAME",
+        gestures=["ILoveYou"],
+        action_func="_exit_game",
+        description="Sai do jogo",
     ),
 }
 
@@ -201,7 +212,35 @@ OBJECT_ACTIONS = {
 # ================================
 # CONFIGURAÇÕES DE ESTADOS DO JOGO
 # ================================
-GAME_STATES = {"MENU": "menu", "TUTORIAL": "tutorial", "FASE1": "fase1"}
+GAME_STATES = {
+    "CUTSCENE1": "cutscene1",
+    "CUTSCENE2": "cutscene2",
+    "CUTSCENE3": "cutscene3",
+    "CUTSCENE4_TUTORIAL": "cutscene4_tutorial",
+    "CUTSCENE5_TUTORIAL_PRATICO": "cutscene5_tutorial_pratico",
+    "CUTSCENE6_INICIO_MISSOES": "cutscene6_inicio_missoes",
+    "FASE1": "fase1",
+}
+
+# Estados que são considerados tutoriais (cutscenes)
+TUTORIAL_STATES = [
+    "cutscene1",
+    "cutscene2",
+    "cutscene3",
+    "cutscene4_tutorial",
+    "cutscene5_tutorial_pratico",
+    "cutscene6_inicio_missoes",
+]
+
+# Ordem das cutscenes do tutorial
+TUTORIAL_ORDER = [
+    "cutscene1",
+    "cutscene2",
+    "cutscene3",
+    "cutscene4_tutorial",
+    "cutscene5_tutorial_pratico",
+    "cutscene6_inicio_missoes",
+]
 
 # ================================
 # ZONAS DE CONFIGURAÇÕES DO JOGO
@@ -273,38 +312,55 @@ FASE1_MATRIX_ZONES = [
 # ================================
 # CONFIGURAÇÕES DE ZONAS POR TELA
 # ================================
+
+# Zonas para todas as cutscenes do tutorial
+TUTORIAL_ZONES = [
+    {
+        "name": "GESTOS_ESQUERDA",
+        "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
+        "color": ZONE_COLORS["GESTOS"],
+        "gestures": get_gestures_for_actions(
+            GESTURE_ACTIONS, "TUTORIAL_PREVIOUS", "EXIT_GAME"
+        ),
+        "objects": [],
+    },
+    {
+        "name": "GESTOS_DIREITA",
+        "rect": (CAMERA_WIDTH - 400, CAMERA_HEIGHT - 300, CAMERA_WIDTH - 25, CAMERA_HEIGHT - 100),
+        "color": ZONE_COLORS["GESTOS"],
+        "gestures": get_gestures_for_actions(
+            GESTURE_ACTIONS, "TUTORIAL_NEXT", "TUTORIAL_SKIP"
+        ),
+        "objects": [],
+    },
+    *CONFIG_ZONES,
+]
+
 SCREEN_ZONES = {
-    "menu": [
-        {
-            "name": "GESTOS",
-            "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
-            "color": ZONE_COLORS["GESTOS"],
-            "gestures": get_gestures_for_actions(
-                GESTURE_ACTIONS, "START_GAME", "OPEN_TUTORIAL", "EXIT_GAME"
-            ),
-            "objects": [],
-        },
-        *CONFIG_ZONES,
-    ],
-    "tutorial": [
-        {
-            "name": "GESTOS",
-            "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
-            "color": ZONE_COLORS["GESTOS"],
-            "gestures": get_gestures_for_actions(
-                GESTURE_ACTIONS, "RETURN_MENU", "REPEAT_NARRATION"
-            ),
-            "objects": [],
-        },
-        *CONFIG_ZONES,
-    ],
+    # Todas as cutscenes do tutorial usam as mesmas zonas
+    "cutscene1": TUTORIAL_ZONES,
+    "cutscene2": TUTORIAL_ZONES,
+    "cutscene3": TUTORIAL_ZONES,
+    "cutscene4_tutorial": TUTORIAL_ZONES,
+    "cutscene5_tutorial_pratico": TUTORIAL_ZONES,
+    "cutscene6_inicio_missoes": TUTORIAL_ZONES,
+    # Fase 1 com duas zonas de gestos
     "fase1": [
         {
-            "name": "GESTOS",
+            "name": "GESTOS_ESQUERDA",
             "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
             "color": ZONE_COLORS["GESTOS"],
             "gestures": get_gestures_for_actions(
-                GESTURE_ACTIONS, "GAME_ACTION", "EXIT_GAME", "REPEAT_NARRATION"
+                GESTURE_ACTIONS, "PHASE_RETURN_TUTORIAL", "EXIT_GAME"
+            ),
+            "objects": [],
+        },
+        {
+            "name": "GESTOS_DIREITA",
+            "rect": (CAMERA_WIDTH - 400, CAMERA_HEIGHT - 300, CAMERA_WIDTH - 25, CAMERA_HEIGHT - 100),
+            "color": ZONE_COLORS["GESTOS"],
+            "gestures": get_gestures_for_actions(
+                GESTURE_ACTIONS, "PHASE_REPEAT_NARRATION", "PHASE_VALIDATE"
             ),
             "objects": [],
         },

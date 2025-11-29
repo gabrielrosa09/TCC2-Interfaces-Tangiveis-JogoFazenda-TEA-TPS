@@ -55,14 +55,7 @@ class GestureProcessor(BaseRecognitionProcessor):
         self.recognizer = self.GestureRecognizer.create_from_options(options)
 
     def _process_result(self, result, output_image: mp.Image, timestamp_ms: int):
-        """
-        Callback do MediaPipe para processar resultados de gestos.
-
-        Args:
-            result: Resultado do reconhecimento de gestos
-            output_image: Imagem de saída do MediaPipe
-            timestamp_ms: Timestamp do frame
-        """
+        """Callback do MediaPipe para processar resultados de gestos."""
         # Atualizar estado atual
         self.current_gestures = result.gestures
         self.current_hand_landmarks = result.hand_landmarks
@@ -101,15 +94,7 @@ class GestureProcessor(BaseRecognitionProcessor):
         self._cleanup_undetected_items(currently_detected_hands)
 
     def _detect_hand_zone(self, hand_landmarks):
-        """
-        Detecta em qual zona a mão está localizada.
-
-        Args:
-            hand_landmarks: Landmarks da mão
-
-        Returns:
-            str or None: Nome da zona ou None se não estiver em nenhuma zona
-        """
+        """Detecta em qual zona a mão está localizada."""
         if not hand_landmarks or not self.zone_manager:
             return None
 
@@ -122,41 +107,20 @@ class GestureProcessor(BaseRecognitionProcessor):
         return zone["name"] if zone else None
 
     def recognize_async(self, mp_image, timestamp_ms):
-        """
-        Processa uma imagem de forma assíncrona.
-
-        Args:
-            mp_image: Imagem do MediaPipe
-            timestamp_ms: Timestamp do frame
-        """
+        """Processa uma imagem de forma assíncrona."""
         if self.recognizer:
             self.recognizer.recognize_async(mp_image, timestamp_ms)
 
     def get_current_gestures(self):
-        """
-        Retorna os gestos atuais detectados.
-
-        Returns:
-            list: Lista de gestos atuais
-        """
+        """Retorna os gestos atuais detectados."""
         return self.current_gestures
 
     def get_current_hand_landmarks(self):
-        """
-        Retorna os landmarks das mãos atuais.
-
-        Returns:
-            list: Lista de landmarks das mãos
-        """
+        """Retorna os landmarks das mãos atuais."""
         return self.current_hand_landmarks
 
     def get_current_handedness(self):
-        """
-        Retorna a informação de lateralidade das mãos atuais.
-
-        Returns:
-            list: Lista de informação de lateralidade
-        """
+        """Retorna a informação de lateralidade das mãos atuais."""
         return self.current_handedness
 
     def cleanup(self):

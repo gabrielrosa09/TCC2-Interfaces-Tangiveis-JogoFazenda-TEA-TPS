@@ -16,22 +16,21 @@ class GameController:
         """Inicia o jogo em uma thread separada"""
         try:
             self.game = Game(game_controller=self)
-            print("🎮 Jogo iniciado")
+            print("[JOGO] Jogo iniciado")
             self.game.run()
-            print("🎮 Jogo encerrado")
+            print("[JOGO] Jogo encerrado")
         except Exception as e:
             print(f"Erro ao iniciar jogo: {e}")
         
     def start_camera(self):
         """Inicia a câmera em uma thread separada"""
         try:
-            # Passar referência do controlador para a câmera
             self.camera = GestureCamera(game_controller=self)
-            print("📷 Câmera iniciada")
+            print("[CAMERA] Camera iniciada")
             self.camera.run()
-            print("📷 Câmera encerrada")
+            print("[CAMERA] Camera encerrada")
         except Exception as e:
-            print(f"Erro ao iniciar câmera: {e}")
+            print(f"Erro ao iniciar camera: {e}")
             
     def run(self):
         """Executa jogo e câmera simultaneamente"""
@@ -53,14 +52,14 @@ class GameController:
                 
                 # Verificar se a câmera foi sinalizada para parar
                 if self.camera and hasattr(self.camera, 'stop_camera') and self.camera.stop_camera:
-                    print("📷 Câmera sinalizada para parar...")
+                    print("[CAMERA] Camera sinalizada para parar...")
                     break
                 
                 # Verificar status do sistema
                 if self.camera:
                     status = self.camera.get_system_status()
                     if not status["camera_open"]:
-                        print("Câmera foi fechada, encerrando...")
+                        print("Camera foi fechada, encerrando...")
                         break
                         
         except KeyboardInterrupt:
@@ -82,7 +81,7 @@ class GameController:
             self.game_thread.join(timeout=2)
         
         if hasattr(self, 'camera_thread') and self.camera_thread.is_alive():
-            print("Aguardando thread da câmera terminar...")
+            print("Aguardando thread da camera terminar...")
             self.camera_thread.join(timeout=2)
         
         # Limpar recursos da câmera

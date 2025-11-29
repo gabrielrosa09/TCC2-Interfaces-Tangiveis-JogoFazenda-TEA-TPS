@@ -31,12 +31,7 @@ class GestureCamera:
     """
 
     def __init__(self, game_controller=None):
-        """
-        Inicializa a câmera de reconhecimento.
-
-        Args:
-            game_controller: Controlador do jogo para comunicação
-        """
+        """Inicializa a câmera de reconhecimento."""
         self.game_controller = game_controller
         self.stop_camera = False  # Flag para parar a câmera
 
@@ -74,39 +69,21 @@ class GestureCamera:
         actual_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = self.cap.get(cv2.CAP_PROP_FPS)
 
-        print(f"📷 PROPRIEDADES DA CÂMERA:")
-        print(f"   📐 Resolução Real: {actual_width}x{actual_height}")
-        print(f"   📐 Resolução Configurada: {CAMERA_WIDTH}x{CAMERA_HEIGHT}")
-        print(f"   🎬 FPS: {fps}")
+        print(f"[CAMERA] PROPRIEDADES DA CÂMERA:")
+        print(f"[CAMERA]    Resolução Real: {actual_width}x{actual_height}")
+        print(f"[CAMERA]    Resolução Configurada: {CAMERA_WIDTH}x{CAMERA_HEIGHT}")
+        print(f"[CAMERA]    FPS: {fps}")
 
     def get_current_game_state(self):
-        """
-        Retorna o estado atual do jogo.
-
-        Returns:
-            str: Estado atual do jogo
-        """
+        """Retorna o estado atual do jogo."""
         return self.zone_manager.current_game_state
 
     def get_gesture_history(self):
-        """
-        Retorna o histórico de gestos.
-
-        Returns:
-            list: Histórico de gestos
-        """
+        """Retorna o histórico de gestos."""
         return self.action_handler.get_gesture_history()
 
     def run(self):
-        """
-        Executa o loop principal de reconhecimento de gestos e objetos.
-
-        Este método:
-        1. Captura frames da câmera
-        2. Processa gestos e objetos com MediaPipe
-        3. Renderiza elementos visuais
-        4. Exibe o resultado na tela
-        """
+        """Executa o loop principal de reconhecimento de gestos e objetos."""
         print("Iniciando reconhecimento de gestos e objetos. Pressione 'q' para sair.")
 
         try:
@@ -151,15 +128,7 @@ class GestureCamera:
             self.cleanup()
 
     def _render_frame(self, frame):
-        """
-        Renderiza o frame com todas as informações visuais.
-
-        Args:
-            frame: Frame da câmera
-
-        Returns:
-            numpy.ndarray: Frame renderizado
-        """
+        """Renderiza o frame com todas as informações visuais."""
         # Obter dados atuais dos gestos
         gestures = self.gesture_processor.get_current_gestures()
         hand_landmarks = self.gesture_processor.get_current_hand_landmarks()
@@ -178,7 +147,7 @@ class GestureCamera:
 
     def stop(self):
         """Para a câmera de forma elegante."""
-        print("🛑 Parando câmera...")
+        print("[CAMERA] Parando camera...")
         self.stop_camera = True
 
     def cleanup(self):
@@ -204,12 +173,7 @@ class GestureCamera:
         print("Recursos limpos com sucesso.")
 
     def get_system_status(self):
-        """
-        Retorna o status atual do sistema.
-
-        Returns:
-            dict: Status do sistema
-        """
+        """Retorna o status atual do sistema."""
         return {
             "camera_open": self.cap.isOpened() if hasattr(self, "cap") else False,
             "current_state": self.get_current_game_state(),

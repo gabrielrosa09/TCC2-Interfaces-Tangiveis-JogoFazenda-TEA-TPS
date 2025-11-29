@@ -9,6 +9,8 @@ from cv.config import (
     GESTURE_HISTORY_SIZE,
     GESTURE_ACTIONS,
     OBJECT_ACTIONS,
+    TUTORIAL_STATES,
+    TUTORIAL_ORDER,
 )
 from core.phase_manager import PhaseManager
 from cv.phase_config import OBJECT_TO_GAME_ELEMENT, get_phase_config
@@ -30,23 +32,12 @@ class ActionHandler:
         self.current_phase_id = None
 
     def execute_action(self, recognition_name, zone_name, item_info, recognition_type="gesture"):
-        """
-        Executa ação baseada no reconhecimento (gesto/objeto), zona e tela atual.
-
-        Args:
-            recognition_name (str): Nome do gesto/objeto reconhecido
-            zone_name (str): Nome da zona onde foi detectado
-            item_info (str): Informação adicional (mão, id do objeto, etc)
-            recognition_type (str): Tipo de reconhecimento ("gesture" ou "object")
-        """
-        # Verificar cooldown
+        """Executa ação baseada no reconhecimento (gesto/objeto), zona e tela atual."""
         if self._is_action_on_cooldown(recognition_name, zone_name):
             return
 
-        # Adicionar ao histórico
         self._add_to_history(recognition_name, zone_name, item_info, recognition_type)
 
-        # Log da ação
         print(
             f"AÇÃO DETECTADA ({recognition_type}): {recognition_name} | {zone_name} | {item_info} | Tela: {self.zone_manager.current_game_state}"
         )
@@ -58,7 +49,6 @@ class ActionHandler:
         elif recognition_type == "object":
             self._handle_object_actions(recognition_name, zone_name, current_state, item_info)
 
-        # Registrar cooldown
         self._register_cooldown(recognition_name, zone_name)
 
     def _is_action_on_cooldown(self, gesture_name, zone_name):
@@ -90,55 +80,47 @@ class ActionHandler:
 
         self.recognition_history.append(recognition_data)
 
-        # Manter apenas os últimos N reconhecimentos
         if len(self.recognition_history) > self.max_history:
             self.recognition_history.pop(0)
 
     def _handle_gesture_actions(self, gesture_name, zone_name, current_state):
-        """
-        Gerencia ações baseadas no gesto, zona e estado atual do jogo.
-
-        Args:
-            gesture_name (str): Nome do gesto reconhecido
-            zone_name (str): Nome da zona onde o gesto foi detectado
-            current_state (str): Estado atual do jogo
-        """
-
-        # Definir quais ações são válidas para cada estado
-        state_actions = {
-            "menu": ["START_GAME", "OPEN_TUTORIAL", "EXIT_GAME"],
-            "tutorial": ["RETURN_MENU", "REPEAT_NARRATION"],
-            "fase1": ["GAME_ACTION", "RETURN_MENU", "REPEAT_NARRATION"],
+        """Gerencia ações baseadas no gesto, zona e estado atual do jogo."""
+        state_zone_actions = {}
+        
+        # Configurar ações para todos os estados de tutorial (cutscenes)
+        for tutorial_state in TUTORIAL_STATES:
+            state_zone_actions[tutorial_state] = {
+                "GESTOS_ESQUERDA": ["TUTORIAL_PREVIOUS", "EXIT_GAME"],
+                "GESTOS_DIREITA": ["TUTORIAL_NEXT", "TUTORIAL_SKIP"],
+            }
+        
+        # Configurar ações para a fase 1
+        state_zone_actions["fase1"] = {
+            "GESTOS_ESQUERDA": ["PHASE_RETURN_TUTORIAL", "EXIT_GAME"],
+            "GESTOS_DIREITA": ["PHASE_REPEAT_NARRATION", "PHASE_VALIDATE"],
         }
 
-        # Obter ações válidas para o estado atual
-        valid_actions = state_actions.get(current_state, [])
+        # Obter ações válidas para o estado e zona atuais
+        valid_actions = []
+        if current_state in state_zone_actions:
+            zone_actions = state_zone_actions[current_state]
+            valid_actions = zone_actions.get(zone_name, [])
 
         # Verificar cada ação válida para ver se o gesto corresponde
         for action_key in valid_actions:
             if action_key in GESTURE_ACTIONS:
                 action = GESTURE_ACTIONS[action_key]
                 if action.is_gesture_valid(gesture_name):
-                    print(f"🎯 Executando ação: {action.description}")
-                    action.execute(self)
+                    print(f"[ACAO] Executando acao: {action.description}")
+                    action.execute(self, zone_name=zone_name)
                     return
 
         print(
-            f"⚠️ Gesto '{gesture_name}' não reconhecido para o estado '{current_state}'"
+            f"[AVISO] Gesto '{gesture_name}' na zona '{zone_name}' nao reconhecido para o estado '{current_state}'"
         )
 
     def _handle_object_actions(self, object_name, zone_name, current_state, item_info=None):
-        """
-        Gerencia ações baseadas no objeto, zona e estado atual do jogo.
-
-        Args:
-            object_name (str): Nome do objeto reconhecido
-            zone_name (str): Nome da zona onde o objeto foi detectado
-            current_state (str): Estado atual do jogo
-            item_info (str): Informação adicional sobre o objeto
-        """
-
-        # Definir quais ações são válidas para cada estado
+        """Gerencia ações baseadas no objeto, zona e estado atual do jogo."""
         state_actions = {
             "menu": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
             "tutorial": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
@@ -153,32 +135,32 @@ class ActionHandler:
             if action_key in OBJECT_ACTIONS:
                 action = OBJECT_ACTIONS[action_key]
                 if action.is_object_valid(object_name):
-                    print(f"🎯 Executando ação de objeto: {action.description}")
+                    print(f"[ACAO] Executando acao de objeto: {action.description}")
                     action.execute(self, object_name=object_name, zone_name=zone_name)
                     return
 
         print(
-            f"⚠️ Objeto '{object_name}' não reconhecido para o estado '{current_state}'"
+            f"[AVISO] Objeto '{object_name}' nao reconhecido para o estado '{current_state}'"
         )
 
-    def _start_game(self):
+    def _start_game(self, zone_name=None):
         """Inicia o jogo."""
         if self.game_controller and hasattr(self.game_controller.game, "state_manager"):
-            print("🎮 INICIANDO JOGO...")
+            print("[JOGO] INICIANDO JOGO...")
             self.game_controller.game.state_manager.set_state("fase1")
             self.zone_manager.set_game_state("fase1")
 
-    def _open_tutorial(self):
+    def _open_tutorial(self, zone_name=None):
         """Abre o tutorial."""
         if self.game_controller and hasattr(self.game_controller.game, "state_manager"):
-            print("📚 ABRINDO TUTORIAL...")
+            print("[TUTORIAL] ABRINDO TUTORIAL...")
             self.game_controller.game.state_manager.set_state("tutorial")
             self.zone_manager.set_game_state("tutorial")
 
-    def _exit_game(self):
+    def _exit_game(self, zone_name=None):
         """Sai do jogo."""
         if self.game_controller:
-            print("👋 SAINDO DO JOGO...")
+            print("[JOGO] SAINDO DO JOGO...")
             # Sinalizar para parar o jogo
             self.game_controller.running = False
             # Sinalizar para parar a câmera
@@ -188,27 +170,27 @@ class ActionHandler:
             if hasattr(self.game_controller, "game") and self.game_controller.game:
                 self.game_controller.game.running = False
 
-    def _return_to_menu(self):
+    def _return_to_menu(self, zone_name=None):
         """Volta ao menu principal."""
         if self.game_controller and hasattr(self.game_controller.game, "state_manager"):
-            print("🏠 VOLTANDO AO MENU...")
+            print("[MENU] VOLTANDO AO MENU...")
             self.game_controller.game.state_manager.set_state("menu")
             self.zone_manager.set_game_state("menu")
 
-    def _execute_game_action(self):
+    def _execute_game_action(self, zone_name=None):
         """Executa ação específica do jogo (validação de fase)."""
-        print("✋ EXECUTANDO AÇÃO DO JOGO...")
+        print("[JOGO] EXECUTANDO ACAO DO JOGO...")
         
         # Verificar se estamos em uma fase
         current_state = self.zone_manager.current_game_state
         if current_state not in ["fase1"]:
-            print("⚠️ Ação do jogo só funciona durante as fases")
+            print("[AVISO] Acao do jogo so funciona durante as fases")
             return
         
         # Determinar qual fase estamos
         phase_id = 1 if current_state == "fase1" else None
         if phase_id is None:
-            print("⚠️ Fase não identificada")
+            print("[AVISO] Fase nao identificada")
             return
         
         # Carregar configuração da fase se necessário
@@ -217,9 +199,9 @@ class ActionHandler:
             if phase_config:
                 self.phase_manager.set_phase(phase_config)
                 self.current_phase_id = phase_id
-                print(f"📋 Fase {phase_id} carregada: {phase_config.get('description', '')}")
+                print(f"[FASE] Fase {phase_id} carregada: {phase_config.get('description', '')}")
             else:
-                print(f"⚠️ Configuração da fase {phase_id} não encontrada")
+                print(f"[AVISO] Configuracao da fase {phase_id} nao encontrada")
                 return
         
         # Obter objetos detectados nas zonas
@@ -232,84 +214,139 @@ class ActionHandler:
         )
         
         # Exibir resultado no terminal
-        print("=" * 50)
-        print(f"🎮 VALIDAÇÃO DA FASE {phase_id}")
-        print("=" * 50)
-        print(f"Resultado: {message}")
-        print("-" * 50)
-        print("Valores das zonas:")
+        print(f"[VALIDACAO] VALIDACAO DA FASE {phase_id}")
+        print(f"[VALIDACAO] Resultado: {message}")
+        print("[VALIDACAO] Valores das zonas:")
         for zone_name, value in zone_values.items():
             if value is not None:
                 print(f"  {zone_name}: {value}")
             else:
-                print(f"  {zone_name}: (inválido)")
-        print("=" * 50)
-        
-        # Se o jogador conseguiu, pode avançar para próxima fase
+                print(f"  {zone_name}: (invalido)")
+
         if success:
-            print("🎉 PARABÉNS! Você completou a fase!")
-            # Aqui você pode adicionar lógica para avançar para a próxima fase
+            print("[VALIDACAO] PARABENS! Voce completou a fase!")
         else:
-            print("💪 Continue tentando!")
+            print("[VALIDACAO] Continue tentando!")
     
     def set_current_phase(self, phase_id: int):
-        """
-        Define a fase atual.
-        
-        Args:
-            phase_id (int): ID da fase
-        """
+        """Define a fase atual."""
         phase_config = get_phase_config(phase_id)
         if phase_config:
             self.phase_manager.set_phase(phase_config)
             self.current_phase_id = phase_id
-            print(f"📋 Fase {phase_id} configurada: {phase_config.get('description', '')}")
+            print(f"[FASE] Fase {phase_id} configurada: {phase_config.get('description', '')}")
         else:
-            print(f"⚠️ Configuração da fase {phase_id} não encontrada")
+            print(f"[AVISO] Configuracao da fase {phase_id} nao encontrada")
     
     def get_phase_manager(self):
-        """
-        Retorna o gerenciador de fases.
-        
-        Returns:
-            PhaseManager: Gerenciador de fases
-        """
+        """Retorna o gerenciador de fases."""
         return self.phase_manager
 
-    def _repeat_narration(self):
+    def _repeat_narration(self, zone_name=None):
         """Repete a narração atual."""
-        print("🔊 REPETINDO NARRAÇÃO...")
-        # Implementar repetição da narração
+        print("[AUDIO] REPETINDO NARRACAO...")
         pass
+    
+    def _tutorial_previous_cutscene(self, zone_name=None):
+        """Volta para a cutscene anterior do tutorial."""
+        if not self.game_controller or not hasattr(self.game_controller.game, "state_manager"):
+            return
+        
+        current_state = self.zone_manager.current_game_state
+        
+        # Verificar se está em um estado de tutorial
+        if current_state not in TUTORIAL_STATES:
+            print("[AVISO] Nao esta em uma cutscene do tutorial")
+            return
+        
+        # Encontrar índice da cutscene atual
+        try:
+            current_index = TUTORIAL_ORDER.index(current_state)
+        except ValueError:
+            print(f"[AVISO] Estado '{current_state}' nao encontrado na ordem do tutorial")
+            return
+        
+        # Se está na primeira cutscene, não faz nada
+        if current_index == 0:
+            print("[INFO] Ja esta na primeira cutscene do tutorial")
+            return
+        
+        # Ir para a cutscene anterior
+        previous_state = TUTORIAL_ORDER[current_index - 1]
+        print(f"[TUTORIAL] VOLTANDO PARA CUTSCENE ANTERIOR: {previous_state}")
+        self.game_controller.game.state_manager.set_state(previous_state)
+        self.zone_manager.set_game_state(previous_state)
+    
+    def _tutorial_next_cutscene(self, zone_name=None):
+        """Avança para a próxima cutscene do tutorial."""
+        if not self.game_controller or not hasattr(self.game_controller.game, "state_manager"):
+            return
+        
+        current_state = self.zone_manager.current_game_state
+        
+        # Verificar se está em um estado de tutorial
+        if current_state not in TUTORIAL_STATES:
+            print("[AVISO] Nao esta em uma cutscene do tutorial")
+            return
+        
+        # Encontrar índice da cutscene atual
+        try:
+            current_index = TUTORIAL_ORDER.index(current_state)
+        except ValueError:
+            print(f"[AVISO] Estado '{current_state}' nao encontrado na ordem do tutorial")
+            return
+        
+        # Se está na última cutscene, vai para a fase
+        if current_index == len(TUTORIAL_ORDER) - 1:
+            print("[TUTORIAL] ULTIMA CUTSCENE! Indo para a fase...")
+            self.game_controller.game.state_manager.set_state("fase1")
+            self.zone_manager.set_game_state("fase1")
+            return
+        
+        # Ir para a próxima cutscene
+        next_state = TUTORIAL_ORDER[current_index + 1]
+        print(f"[TUTORIAL] AVANCANDO PARA PROXIMA CUTSCENE: {next_state}")
+        self.game_controller.game.state_manager.set_state(next_state)
+        self.zone_manager.set_game_state(next_state)
+    
+    def _tutorial_skip(self, zone_name=None):
+        """Pula o tutorial e vai direto para a fase."""
+        if not self.game_controller or not hasattr(self.game_controller.game, "state_manager"):
+            return
+        
+        current_state = self.zone_manager.current_game_state
+        
+        # Verificar se está em um estado de tutorial
+        if current_state not in TUTORIAL_STATES:
+            print("[AVISO] Nao esta em uma cutscene do tutorial")
+            return
+        
+        print("[TUTORIAL] PULANDO TUTORIAL... Indo para a fase!")
+        self.game_controller.game.state_manager.set_state("fase1")
+        self.zone_manager.set_game_state("fase1")
+    
+    def _phase_return_to_tutorial(self, zone_name=None):
+        """Volta para o tutorial (primeira cutscene)."""
+        if not self.game_controller or not hasattr(self.game_controller.game, "state_manager"):
+            return
+        
+        print("[TUTORIAL] VOLTANDO PARA O TUTORIAL (primeira cutscene)...")
+        first_tutorial = TUTORIAL_ORDER[0]
+        self.game_controller.game.state_manager.set_state(first_tutorial)
+        self.zone_manager.set_game_state(first_tutorial)
 
     def get_gesture_history(self):
-        """
-        Retorna o histórico de gestos (mantém compatibilidade).
-
-        Returns:
-            list: Histórico de gestos
-        """
+        """Retorna o histórico de gestos."""
         return [
             item for item in self.recognition_history if item["type"] == "gesture"
         ]
 
     def get_recognition_history(self):
-        """
-        Retorna o histórico completo de reconhecimentos.
-
-        Returns:
-            list: Histórico de reconhecimentos
-        """
+        """Retorna o histórico completo de reconhecimentos."""
         return self.recognition_history.copy()
 
     def _change_brightness(self, object_name=None, zone_name=None):
-        """
-        Altera o brilho da tela baseado no objeto detectado.
-
-        Args:
-            object_name (str): Nome do objeto que define o nível de brilho
-            zone_name (str): Nome da zona onde o objeto foi detectado
-        """
+        """Altera o brilho da tela baseado no objeto detectado."""
         from cv.config import BRIGHTNESS_LEVELS
 
         if object_name and object_name in BRIGHTNESS_LEVELS:
@@ -324,23 +361,16 @@ class ActionHandler:
                     if current_opacity == opacity:
                         return
                     
-                    # Só alterar se for diferente
-                    print(f"💡 ALTERANDO BRILHO: {object_name} (opacidade: {opacity})")
+                    print(f"[BRILHO] ALTERANDO BRILHO: {object_name} (opacidade: {opacity})")
                     self.game_controller.game.brightness_overlay.set_opacity(opacity)
-                    print(f"✅ Brilho alterado com sucesso!")
+                    print(f"[BRILHO] Brilho alterado com sucesso!")
                 else:
-                    print("⚠️ BrightnessOverlay não encontrado no jogo")
+                    print("[AVISO] BrightnessOverlay nao encontrado no jogo")
         else:
-            print(f"⚠️ Objeto '{object_name}' não possui configuração de brilho")
+            print(f"[AVISO] Objeto '{object_name}' nao possui configuracao de brilho")
 
     def _change_volume(self, object_name=None, zone_name=None):
-        """
-        Altera o volume do som baseado no objeto detectado.
-
-        Args:
-            object_name (str): Nome do objeto que define o nível de volume
-            zone_name (str): Nome da zona onde o objeto foi detectado
-        """
+        """Altera o volume do som baseado no objeto detectado."""
         from cv.config import VOLUME_LEVELS
 
         if object_name and object_name in VOLUME_LEVELS:
@@ -355,23 +385,16 @@ class ActionHandler:
                     if current_volume == volume:
                         return
                     
-                    # Só alterar se for diferente
-                    print(f"🔊 ALTERANDO VOLUME: {object_name} (volume: {volume * 100:.0f}%)")
+                    print(f"[VOLUME] ALTERANDO VOLUME: {object_name} (volume: {volume * 100:.0f}%)")
                     self.game_controller.game.audio_manager.set_volume(volume)
-                    print(f"✅ Volume alterado com sucesso!")
+                    print(f"[VOLUME] Volume alterado com sucesso!")
                 else:
-                    print("⚠️ AudioManager não encontrado no jogo")
+                    print("[AVISO] AudioManager nao encontrado no jogo")
         else:
-            print(f"⚠️ Objeto '{object_name}' não possui configuração de volume")
+            print(f"[AVISO] Objeto '{object_name}' nao possui configuracao de volume")
 
     def _change_color_mode(self, object_name=None, zone_name=None):
-        """
-        Altera o modo de cor da interface baseado no objeto detectado.
-
-        Args:
-            object_name (str): Nome do objeto que define o modo de cor
-            zone_name (str): Nome da zona onde o objeto foi detectado
-        """
+        """Altera o modo de cor da interface baseado no objeto detectado."""
         from cv.config import COLOR_MODES
 
         if object_name and object_name in COLOR_MODES:
@@ -386,12 +409,11 @@ class ActionHandler:
                     if current_mode == color_mode:
                         return
                     
-                    # Só alterar se for diferente
                     mode_name = "COLORIDO" if color_mode == "color" else "PRETO E BRANCO"
-                    print(f"🎨 ALTERANDO MODO DE COR: {object_name} → {mode_name}")
+                    print(f"[COR] ALTERANDO MODO DE COR: {object_name} -> {mode_name}")
                     self.game_controller.game.color_filter.set_mode(color_mode)
-                    print(f"✅ Modo de cor alterado com sucesso!")
+                    print(f"[COR] Modo de cor alterado com sucesso!")
                 else:
-                    print("⚠️ ColorFilter não encontrado no jogo")
+                    print("[AVISO] ColorFilter nao encontrado no jogo")
         else:
-            print(f"⚠️ Objeto '{object_name}' não possui configuração de cor")
+            print(f"[AVISO] Objeto '{object_name}' nao possui configuracao de cor")

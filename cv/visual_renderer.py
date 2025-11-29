@@ -31,20 +31,7 @@ class VisualRenderer:
         game_state,
         object_detections=None,
     ):
-        """
-        Renderiza um frame completo com todas as informações visuais.
-
-        Args:
-            frame: Frame da câmera
-            gestures: Lista de gestos detectados
-            hand_landmarks: Lista de landmarks das mãos
-            handedness: Lista de lateralidade das mãos
-            game_state: Estado atual do jogo
-            object_detections: Lista de detecções de objetos
-
-        Returns:
-            numpy.ndarray: Frame renderizado
-        """
+        """Renderiza um frame completo com todas as informações visuais."""
         height, width, _ = frame.shape
 
         # Desenhar zonas
@@ -64,12 +51,7 @@ class VisualRenderer:
         return frame
 
     def _draw_zones(self, frame):
-        """
-        Desenha as zonas de interação na tela.
-
-        Args:
-            frame: Frame da câmera
-        """
+        """Desenha as zonas de interação na tela."""
         if not self.zone_manager:
             return
 
@@ -120,13 +102,7 @@ class VisualRenderer:
                 )
 
     def _draw_state_info(self, frame, game_state):
-        """
-        Desenha informações do estado atual do jogo.
-
-        Args:
-            frame: Frame da câmera
-            game_state: Estado atual do jogo
-        """
+        """Desenha informações do estado atual do jogo."""
         # Desenhar estado atual
         cv2.putText(
             frame,
@@ -139,15 +115,7 @@ class VisualRenderer:
         )
 
     def _draw_hands_and_gestures(self, frame, gestures, hand_landmarks, handedness):
-        """
-        Desenha landmarks das mãos e informações dos gestos.
-
-        Args:
-            frame: Frame da câmera
-            gestures: Lista de gestos detectados
-            hand_landmarks: Lista de landmarks das mãos
-            handedness: Lista de lateralidade das mãos
-        """
+        """Desenha landmarks das mãos e informações dos gestos."""
         height, width, _ = frame.shape
 
         for i, (gesture_list, landmarks_list, handedness_list) in enumerate(
@@ -167,30 +135,14 @@ class VisualRenderer:
                 )
 
     def _draw_hand_landmarks(self, frame, landmarks_list, width, height):
-        """
-        Desenha os pontos (landmarks) da mão.
-
-        Args:
-            frame: Frame da câmera
-            landmarks_list: Lista de landmarks da mão
-            width: Largura do frame
-            height: Altura do frame
-        """
+        """Desenha os pontos (landmarks) da mão."""
         for landmark in landmarks_list:
             x = int(landmark.x * width)
             y = int(landmark.y * height)
             cv2.circle(frame, (x, y), LANDMARK_RADIUS, LANDMARK_COLOR, -1)
 
     def _draw_hand_connections(self, frame, landmarks_list, width, height):
-        """
-        Desenha as conexões entre os landmarks da mão.
-
-        Args:
-            frame: Frame da câmera
-            landmarks_list: Lista de landmarks da mão
-            width: Largura do frame
-            height: Altura do frame
-        """
+        """Desenha as conexões entre os landmarks da mão."""
         # Definir conexões dos dedos
         connections = [
             # Polegar
@@ -244,17 +196,7 @@ class VisualRenderer:
     def _draw_gesture_info(
         self, frame, gesture_list, handedness_list, landmarks_list, width, height
     ):
-        """
-        Desenha informações do gesto detectado.
-
-        Args:
-            frame: Frame da câmera
-            gesture_list: Lista de gestos
-            handedness_list: Lista de lateralidade
-            landmarks_list: Lista de landmarks
-            width: Largura do frame
-            height: Altura do frame
-        """
+        """Desenha informações do gesto detectado."""
         if not gesture_list or not landmarks_list:
             return
 
@@ -289,18 +231,7 @@ class VisualRenderer:
         thickness,
         bg_color=(0, 0, 0),
     ):
-        """
-        Desenha texto com fundo colorido.
-
-        Args:
-            frame: Frame onde desenhar
-            text: Texto a desenhar
-            position: Posição (x, y) do texto
-            font_scale: Escala da fonte
-            text_color: Cor do texto
-            thickness: Espessura do texto
-            bg_color: Cor do fundo
-        """
+        """Desenha texto com fundo colorido."""
         x, y = position
 
         # Calcular tamanho do texto
@@ -325,13 +256,7 @@ class VisualRenderer:
         )
 
     def _draw_object_detections(self, frame, detections):
-        """
-        Desenha bounding boxes e labels dos objetos detectados.
-
-        Args:
-            frame: Frame da câmera
-            detections: Lista de detecções de objetos
-        """
+        """Desenha bounding boxes e labels dos objetos detectados."""
         # Cores para diferentes objetos (BGR)
         colors = [
             (0, 255, 0),  # Verde

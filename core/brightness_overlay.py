@@ -10,14 +10,7 @@ class BrightnessOverlay:
     """Gerencia a sobreposição de brilho da tela do jogo."""
 
     def __init__(self, screen_width, screen_height, default_opacity=0):
-        """
-        Inicializa o overlay de brilho.
-
-        Args:
-            screen_width (int): Largura da tela
-            screen_height (int): Altura da tela
-            default_opacity (int): Opacidade inicial (0-255, onde 0 é transparente e 255 é opaco)
-        """
+        """Inicializa o overlay de brilho."""
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.opacity = default_opacity
@@ -28,45 +21,23 @@ class BrightnessOverlay:
         self.overlay_surface.set_alpha(self.opacity)
 
     def set_opacity(self, opacity):
-        """
-        Define a opacidade do overlay.
-
-        Args:
-            opacity (int): Valor de opacidade (0-255)
-                          0 = totalmente transparente (100% brilho)
-                          255 = totalmente opaco (0% brilho)
-        """
+        """Define a opacidade do overlay."""
         # Garantir que o valor está no intervalo válido
         self.opacity = max(0, min(255, opacity))
         self.overlay_surface.set_alpha(self.opacity)
-        print(f"🔆 Opacidade do overlay definida para: {self.opacity}/255")
+        print(f"[BRILHO] Opacidade do overlay definida para: {self.opacity}/255")
 
     def get_opacity(self):
-        """
-        Retorna a opacidade atual do overlay.
-
-        Returns:
-            int: Valor de opacidade atual (0-255)
-        """
+        """Retorna a opacidade atual do overlay."""
         return self.opacity
 
     def get_brightness_percentage(self):
-        """
-        Retorna o percentual de brilho atual.
-
-        Returns:
-            float: Percentual de brilho (0-100)
-        """
+        """Retorna o percentual de brilho atual."""
         # Brilho é o inverso da opacidade
         return ((255 - self.opacity) / 255) * 100
 
     def draw(self, screen):
-        """
-        Desenha o overlay na tela.
-
-        Args:
-            screen (pygame.Surface): Superfície da tela onde o overlay será desenhado
-        """
+        """Desenha o overlay na tela."""
         if self.opacity > 0:
             screen.blit(self.overlay_surface, (0, 0))
 
