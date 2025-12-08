@@ -125,6 +125,8 @@ COLOR_MODES = {
 }
 DEFAULT_COLOR_MODE_OBJECT = "cell phone"
 
+BACKGROUND_MUSIC_PATH = ""
+
 # ================================
 # CONFIGURAÇÕES DE AÇÕES
 # ================================
@@ -212,35 +214,7 @@ OBJECT_ACTIONS = {
 # ================================
 # CONFIGURAÇÕES DE ESTADOS DO JOGO
 # ================================
-GAME_STATES = {
-    "CUTSCENE1": "cutscene1",
-    "CUTSCENE2": "cutscene2",
-    "CUTSCENE3": "cutscene3",
-    "CUTSCENE4_TUTORIAL": "cutscene4_tutorial",
-    "CUTSCENE5_TUTORIAL_PRATICO": "cutscene5_tutorial_pratico",
-    "CUTSCENE6_INICIO_MISSOES": "cutscene6_inicio_missoes",
-    "FASE1": "fase1",
-}
-
-# Estados que são considerados tutoriais (cutscenes)
-TUTORIAL_STATES = [
-    "cutscene1",
-    "cutscene2",
-    "cutscene3",
-    "cutscene4_tutorial",
-    "cutscene5_tutorial_pratico",
-    "cutscene6_inicio_missoes",
-]
-
-# Ordem das cutscenes do tutorial
-TUTORIAL_ORDER = [
-    "cutscene1",
-    "cutscene2",
-    "cutscene3",
-    "cutscene4_tutorial",
-    "cutscene5_tutorial_pratico",
-    "cutscene6_inicio_missoes",
-]
+GAME_STATES = {"MENU": "menu", "TUTORIAL": "tutorial", "FASE1": "fase1"}
 
 # ================================
 # ZONAS DE CONFIGURAÇÕES DO JOGO
@@ -334,6 +308,24 @@ TUTORIAL_ZONES = [
         "objects": [],
     },
     *CONFIG_ZONES,
+]
+
+TUTORIAL_STATES = [
+    "cutscene1",
+    "cutscene2",
+    "cutscene3",
+    "cutscene4_tutorial",
+    "cutscene5_tutorial_pratico",
+    "cutscene6_inicio_missoes",
+]
+
+TUTORIAL_ORDER = [
+    "cutscene1",
+    "cutscene2",
+    "cutscene3",
+    "cutscene4_tutorial",
+    "cutscene5_tutorial_pratico",
+    "cutscene6_inicio_missoes",
 ]
 
 SCREEN_ZONES = {

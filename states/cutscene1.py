@@ -7,4 +7,4 @@ class Cutscene1(CutsceneBase):
             "Eles ouviram dizer que o leite produzido aqui é o melhor da Via Láctea!"
             "ETs: Gostaríamos de levar os leites produzidos aqui."
         )
-        super().__init__(game, text, next_state="cutscene2")
+        super().__init__(game, text, next_state="fase1")
