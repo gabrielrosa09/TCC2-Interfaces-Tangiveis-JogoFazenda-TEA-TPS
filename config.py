@@ -1,6 +1,6 @@
 # config.py
-LARGURA = 1920
-ALTURA = 1080
+LARGURA = 256
+ALTURA = 144
 FPS = 60
 
 # Cores

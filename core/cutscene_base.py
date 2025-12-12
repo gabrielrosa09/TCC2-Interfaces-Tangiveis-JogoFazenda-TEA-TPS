@@ -9,7 +9,7 @@ class CutsceneBase:
         self.text = text
         self.next_state = next_state
         self.background = background
-        self.font = pygame.font.Font("assets/fonts/vcr.ttf", 32)
+        self.font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
         self.typing_speed = typing_speed
         self.fade_duration = fade_duration
 
@@ -22,8 +22,8 @@ class CutsceneBase:
         self.fading_out = False
         self.fade_start = pygame.time.get_ticks()
 
-        self.margin = 100
-        self.line_spacing = 45
+        self.margin = 4
+        self.line_spacing = 9
 
         self.type_sound = self.generate_soft_plim()
 
@@ -123,32 +123,60 @@ class CutsceneBase:
         }
 
         wrapped_lines = self.wrap_text(self.displayed_text, LARGURA)
-        y = int(ALTURA * 0.7)
+        y = int(ALTURA * 0.5)
 
         fala_atual = None  # mantém quem está falando
 
         for line in wrapped_lines:
-            # Detecta início de nova fala
+            # Detecta início da fala
             for personagem, cor in personagens_cores.items():
                 if line.startswith(personagem + ":"):
                     fala_atual = personagem
                     break
 
-            # Define a cor com base na fala atual
-            if fala_atual and fala_atual in personagens_cores:
-                color = personagens_cores[fala_atual]
-            else:
-                color = BRANCO
+            color = personagens_cores.get(fala_atual, BRANCO)
 
-            surface = self.font.render(line, True, color)
-            rect = surface.get_rect(center=(LARGURA // 2, y))
-            screen.blit(surface, rect)
+            words = line.split(" ")
+
+            # Se for linha com 1 palavra ou última linha do parágrafo, NÃO justificar
+            if len(words) == 1 or line == wrapped_lines[-1]:
+                surface = self.font.render(line, True, color)
+
+                rect = surface.get_rect(midtop=(LARGURA // 2, y))
+
+                screen.blit(surface, rect)
+                y += self.line_spacing
+                continue
+
+            # ----------------------------
+            #        JUSTIFICAÇÃO
+            # ----------------------------
+            total_words_width = sum(self.font.size(w)[0] for w in words)
+            num_spaces = len(words) - 1
+            max_width = LARGURA - 2 * self.margin
+
+            extra_space = max_width - total_words_width
+            space_width = extra_space // num_spaces
+
+            x = self.margin
+
+            for i, word in enumerate(words):
+                w_surface = self.font.render(word, True, color)
+                screen.blit(w_surface, (x, y))
+
+                w_width = self.font.size(word)[0]
+
+                if i < num_spaces:
+                    x += w_width + space_width
+                else:
+                    x += w_width
+
             y += self.line_spacing
 
         # Texto "pressione qualquer tecla"
         if self.char_index >= len(self.text) and not self.fading_out:
             tip = self.font.render("(Pressione qualquer tecla para continuar)", True, CINZA)
-            tip_rect = tip.get_rect(center=(LARGURA // 2, ALTURA - 50))
+            tip_rect = tip.get_rect(center=(LARGURA // 2, ALTURA - 10))
             screen.blit(tip, tip_rect)
 
         # Efeito fade
