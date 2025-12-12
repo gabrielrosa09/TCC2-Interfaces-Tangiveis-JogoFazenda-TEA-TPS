@@ -148,6 +148,15 @@ class Fase1State:
             self.last_cow_update = now
             self.current_cow_frame = (self.current_cow_frame + 1) % len(self.cow_frames)
 
+        action_handler = self._get_action_handler()
+        if action_handler and action_handler.new_feedback_available:
+            # Pega o texto
+            new_msg = action_handler.ui_feedback_text
+            # Atualiza a dialog box
+            self.set_dialog_text(new_msg)
+            # Baixa a flag para não atualizar repetidamente
+            action_handler.new_feedback_available = False
+
         elapsed = now - self.last_text_update
         chars_to_add = int(elapsed / (1000 / self.text_speed))
 
@@ -242,7 +251,7 @@ class Fase1State:
             y += font.get_linesize() + line_spacing
 
     def _draw_phase_zone_info(self, screen):
-        # (não modificado – seu código original aqui)
+
         if not hasattr(self.game, 'game_controller') or not self.game.game_controller: return
         gc = self.game.game_controller
         if not hasattr(gc, 'camera') or not gc.camera: return
@@ -268,11 +277,6 @@ class Fase1State:
 
         phase_zones = ["INPUT1", "INPUT2", "GATE1", "GATE2"]
 
-        VERDE = (0, 255, 0)
-        VERMELHO = (255, 0, 0)
-        PRETO_COR = (0, 0, 0)
-        BRANCO_COR = (255, 255, 255)
-
         for zone_name in phase_zones:
             zone_config = zones_by_name.get(zone_name)
             if not zone_config: continue
@@ -282,7 +286,7 @@ class Fase1State:
                 if marker_pos:
                     m_rect = pygame.Rect(0, 0, 300, 300)
                     m_rect.center = marker_pos
-                    pygame.draw.rect(screen, PRETO_COR, m_rect)
+                    pygame.draw.rect(screen, PRETO, m_rect)
 
             if show_results and zone_name in validation_results:
                 val = validation_results[zone_name]
@@ -294,6 +298,20 @@ class Fase1State:
                         txt_rect = txt_surf.get_rect(center=res_pos)
 
                         bg_rect = txt_rect.inflate(20, 20)
-                        pygame.draw.rect(screen, PRETO_COR, bg_rect)
-                        pygame.draw.rect(screen, BRANCO_COR, bg_rect, 2)
+                        pygame.draw.rect(screen, PRETO, bg_rect)
+                        pygame.draw.rect(screen, BRANCO, bg_rect, 2)
                         screen.blit(txt_surf, txt_rect)
+
+    def set_dialog_text(self, new_text):
+        """Reinicia a animação de texto com uma nova mensagem."""
+        self.full_dialog_text = new_text
+        self.shown_chars = 0
+        self.last_text_update = pygame.time.get_ticks()
+        self.typewriter_started = False
+
+    def _get_action_handler(self):
+        """Recupera o action_handler de forma segura."""
+        if hasattr(self.game, 'game_controller') and self.game.game_controller:
+            if hasattr(self.game.game_controller, 'camera') and self.game.game_controller.camera:
+                return self.game.game_controller.camera.action_handler
+        return None

@@ -31,6 +31,9 @@ class ActionHandler:
         self.phase_manager = PhaseManager()
         self.current_phase_id = None
 
+        self.ui_feedback_text = ""
+        self.new_feedback_available = False
+
     def execute_action(self, recognition_name, zone_name, item_info, recognition_type="gesture"):
         """Executa ação baseada no reconhecimento (gesto/objeto), zona e tela atual."""
         if self._is_action_on_cooldown(recognition_name, zone_name):
@@ -227,6 +230,22 @@ class ActionHandler:
             print("[VALIDACAO] PARABENS! Voce completou a fase!")
         else:
             print("[VALIDACAO] Continue tentando!")
+
+        details_str = ""
+        for z_name, value in zone_values.items():
+            val_str = str(value) if value is not None else "?"
+            details_str += f"[{z_name}: {val_str}] "
+
+        # Monta a string final
+        full_msg = f"{message} Detalhes: {details_str}"
+
+        # Se for sucesso, adiciona parabéns
+        if success:
+            full_msg = f"PARABÉNS! {full_msg}"
+
+        # Atualiza a variavel e levanta a flag
+        self.ui_feedback_text = full_msg
+        self.new_feedback_available = True
     
     def set_current_phase(self, phase_id: int):
         """Define a fase atual."""

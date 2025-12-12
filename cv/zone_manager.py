@@ -11,7 +11,7 @@ class ZoneManager:
     """Gerencia as zonas de interação para cada tela do jogo."""
 
     def __init__(self):
-        self.current_game_state = "cutscene1"
+        self.current_game_state = "fase1"
         self.screen_zones = SCREEN_ZONES.copy()
         # Rastrear objetos detectados em cada zona (para zonas de fase)
         self.zone_objects: Dict[str, Optional[str]] = {}
