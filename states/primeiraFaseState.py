@@ -202,10 +202,6 @@ class Fase1State:
 
         self._draw_phase_zone_info(screen)
 
-    # -------------------------------------------------------------------------
-    # (O RESTANTE DO SEU CÓDIGO PERMANECE IGUAL, SEM ALTERAÇÕES)
-    # -------------------------------------------------------------------------
-
     def draw_text_justified(self, surface, text, font, color, rect, line_spacing=1):
         words = text.split()
         space_w, _ = font.size(" ")
