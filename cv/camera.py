@@ -97,14 +97,14 @@ class GestureCamera:
                 # Espelhar frame horizontalmente (desabilitado)
                 # frame = cv2.flip(frame, 1)
 
-                # Converter para formato do MediaPipe
+                # Converter para formato do MediaPipe (apenas para gestos)
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
-                # Processar gestos e objetos
+                # Processar gestos (MediaPipe) e objetos (YOLO)
                 frame_timestamp_ms = int(time.time() * 1000)
                 self.gesture_processor.recognize_async(mp_image, frame_timestamp_ms)
-                self.object_processor.detect_async(mp_image, frame_timestamp_ms)
+                self.object_processor.detect_sync(frame)  # YOLO usa frame BGR diretamente
 
                 # Renderizar frame
                 frame = self._render_frame(frame)

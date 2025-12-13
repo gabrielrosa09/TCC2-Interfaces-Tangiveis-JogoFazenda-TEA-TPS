@@ -13,7 +13,7 @@ from cv.config import (
     TUTORIAL_ORDER,
 )
 from core.phase_manager import PhaseManager
-from cv.phase_config import OBJECT_TO_GAME_ELEMENT, get_phase_config
+from cv.phase_config import get_phase_config
 
 
 class ActionHandler:
@@ -129,9 +129,14 @@ class ActionHandler:
             "tutorial": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
             "fase1": ["FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT", "CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
         }
-
-        # Obter ações válidas para o estado atual
-        valid_actions = state_actions.get(current_state, [])
+        
+        # Verificar se o estado atual é uma cutscene do tutorial
+        if current_state in TUTORIAL_STATES:
+            # Usar as ações do tutorial para todas as cutscenes
+            valid_actions = state_actions.get("tutorial", [])
+        else:
+            # Obter ações válidas para o estado atual
+            valid_actions = state_actions.get(current_state, [])
 
         # Verificar cada ação válida para ver se o objeto corresponde
         for action_key in valid_actions:
@@ -210,10 +215,9 @@ class ActionHandler:
         # Obter objetos detectados nas zonas
         detected_objects = self.zone_manager.get_all_zone_objects()
         
-        # Validar a fase
+        # Validar a fase (não precisa mais de mapeamento, YOLO já retorna nomes corretos)
         success, message, zone_values = self.phase_manager.validate_phase(
-            detected_objects,
-            OBJECT_TO_GAME_ELEMENT
+            detected_objects
         )
         
         # Exibir resultado no terminal

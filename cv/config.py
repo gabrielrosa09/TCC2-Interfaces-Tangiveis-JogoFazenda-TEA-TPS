@@ -22,11 +22,13 @@ MIN_HAND_PRESENCE_CONFIDENCE = 0.5
 MIN_TRACKING_CONFIDENCE = 0.5
 
 # ================================
-# CONFIGURAÇÕES DO MEDIAPIPE - OBJETOS
+# CONFIGURAÇÕES DO YOLO - OBJETOS
 # ================================
 OBJECT_MODEL_PATH = "cv/mediapipe_models/best.pt"
-MAX_OBJECT_RESULTS = 17
 MIN_OBJECT_DETECTION_CONFIDENCE = 0.3
+# YOLO configurações adicionais (podem ser ajustadas conforme necessário)
+YOLO_IOU_THRESHOLD = 0.45  # Threshold para Non-Maximum Suppression
+YOLO_MAX_DETECTIONS = 17  # Número máximo de detecções por frame
 
 # ================================
 # CONFIGURAÇÕES DE RENDERIZAÇÃO
@@ -103,7 +105,7 @@ DEFAULT_BRIGHTNESS_OBJECT = "high_brightness"
 VOLUME_LEVELS = {
     "high_volume": 0.7,  # 100% de volume
     "medium_volume": 0.5,  # 70% de volume
-    "low_volume": 0.3,  # 40% de volume
+    "low_volume": 0.2,  # 40% de volume
     "mute_volume": 0.0,  # 0% de volume (mudo)
 }
 DEFAULT_VOLUME_OBJECT = "high_volume"
@@ -113,8 +115,8 @@ DEFAULT_VOLUME_OBJECT = "high_volume"
 # ================================
 GAME_SOUNDS = {
     "background_music": {
-        "path": "assets/sounds/background-music.mp3",
-        "base_volume": 0.2,
+        "path": "assets/sounds/come_along.mp3",
+        "base_volume": 1,
         "description": "Música de fundo do jogo",
     },
 }

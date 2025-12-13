@@ -100,17 +100,30 @@ class CircuitEvaluator:
         zone_config: Dict[str, Any],
         detected_object: Optional[str],
         input_values: Dict[str, int],
-        object_mapping: Dict[str, str]
+        object_mapping: Optional[Dict[str, str]] = None
     ) -> Tuple[Optional[int], bool, str]:
-        """Avalia uma zona específica do circuito."""
+        """Avalia uma zona específica do circuito.
+        
+        Args:
+            zone_name: Nome da zona
+            zone_config: Configuração da zona
+            detected_object: Objeto detectado na zona
+            input_values: Valores dos inputs (solar, eolico)
+            object_mapping: Mapeamento opcional de objetos para elementos do jogo.
+                           Se None, assume que detected_object já é o nome correto.
+        """
         # Verificar se há objeto detectado
         if not detected_object:
             return None, False, f"Zona {zone_name} está vazia"
         
-        # Mapear objeto detectado para elemento do jogo
-        game_element = object_mapping.get(detected_object)
-        if not game_element:
-            return None, False, f"Objeto '{detected_object}' não é reconhecido pelo jogo"
+        # Mapear objeto detectado para elemento do jogo (se mapeamento fornecido)
+        if object_mapping:
+            game_element = object_mapping.get(detected_object)
+            if not game_element:
+                return None, False, f"Objeto '{detected_object}' não é reconhecido pelo jogo"
+        else:
+            # Sem mapeamento, usar o nome do objeto diretamente
+            game_element = detected_object
         
         # Verificar se o elemento é permitido nesta zona (mas continuar calculando)
         allowed_elements = zone_config.get("allowed_elements", [])
@@ -167,10 +180,19 @@ class CircuitEvaluator:
         zones_config: List[Dict[str, Any]],
         detected_objects: Dict[str, Optional[str]],
         input_values: Dict[str, int],
-        object_mapping: Dict[str, str],
+        object_mapping: Optional[Dict[str, str]],
         evaluation_order: List[str]
     ) -> Tuple[Dict[str, Optional[int]], List[str]]:
-        """Avalia todo o circuito seguindo a ordem de avaliação."""
+        """Avalia todo o circuito seguindo a ordem de avaliação.
+        
+        Args:
+            zones_config: Configuração das zonas
+            detected_objects: Objetos detectados por zona
+            input_values: Valores dos inputs (solar, eolico)
+            object_mapping: Mapeamento opcional de objetos para elementos do jogo.
+                           Se None, assume que os objetos já têm os nomes corretos.
+            evaluation_order: Ordem de avaliação das zonas
+        """
         self.zone_values = {}
         self.zone_objects = detected_objects.copy()
         errors = []

@@ -209,6 +209,9 @@ class Fase1State:
         if 'display_1' in self.rects:
             screen.blit(self.images['display_1'], self.rects['display_1'])
 
+        # Desenhar grade de 5x5 pixels para facilitar posicionamento
+        # self._draw_grid(screen)
+
         self._draw_phase_zone_info(screen)
 
     def draw_text_justified(self, surface, text, font, color, rect, line_spacing=1):
@@ -281,26 +284,27 @@ class Fase1State:
             zone_config = zones_by_name.get(zone_name)
             if not zone_config: continue
 
-            if zone_objects.get(zone_name):
+            detected_obj = zone_objects.get(zone_name)
+            if detected_obj:
                 marker_pos = phase_manager.get_zone_marker_position(zone_config)
                 if marker_pos:
-                    m_rect = pygame.Rect(0, 0, 300, 300)
+                    m_rect = pygame.Rect(0, 0, 26, 26)
                     m_rect.center = marker_pos
-                    pygame.draw.rect(screen, PRETO, m_rect)
+                    pygame.draw.rect(screen, BRANCO, m_rect)
 
-            if show_results and zone_name in validation_results:
-                val = validation_results[zone_name]
-                if val is not None:
-                    res_pos = phase_manager.get_zone_result_position(zone_config)
-                    if res_pos:
-                        txt_col = VERDE if val == 1 else VERMELHO
-                        txt_surf = self.result_font.render(str(val), True, txt_col)
-                        txt_rect = txt_surf.get_rect(center=res_pos)
+            # if show_results and zone_name in validation_results:
+            #     val = validation_results[zone_name]
+            #     if val is not None:
+            #         res_pos = phase_manager.get_zone_result_position(zone_config)
+            #         if res_pos:
+            #             txt_col = VERDE if val == 1 else VERMELHO
+            #             txt_surf = self.result_font.render(str(val), True, txt_col)
+            #             txt_rect = txt_surf.get_rect(center=res_pos)
 
-                        bg_rect = txt_rect.inflate(20, 20)
-                        pygame.draw.rect(screen, PRETO, bg_rect)
-                        pygame.draw.rect(screen, BRANCO, bg_rect, 2)
-                        screen.blit(txt_surf, txt_rect)
+            #             bg_rect = txt_rect.inflate(20, 20)
+            #             pygame.draw.rect(screen, PRETO, bg_rect)
+            #             pygame.draw.rect(screen, BRANCO, bg_rect, 2)
+            #             screen.blit(txt_surf, txt_rect)
 
     def set_dialog_text(self, new_text):
         """Reinicia a animação de texto com uma nova mensagem."""
@@ -308,6 +312,33 @@ class Fase1State:
         self.shown_chars = 0
         self.last_text_update = pygame.time.get_ticks()
         self.typewriter_started = False
+
+    def _draw_grid(self, screen):
+        """Desenha uma grade de 5x5 pixels para facilitar posicionamento."""
+        grid_color = (100, 100, 100)  # Cinza escuro
+        grid_color_10 = (150, 150, 150)  # Cinza mais claro para linhas de 10 em 10
+        
+        # Linhas verticais
+        for x in range(0, LARGURA, 5):
+            color = grid_color_10 if x % 10 == 0 else grid_color
+            thickness = 1 if x % 10 == 0 else 1
+            pygame.draw.line(screen, color, (x, 0), (x, ALTURA), thickness)
+        
+        # Linhas horizontais
+        for y in range(0, ALTURA, 5):
+            color = grid_color_10 if y % 10 == 0 else grid_color
+            thickness = 1 if y % 10 == 0 else 1
+            pygame.draw.line(screen, color, (0, y), (LARGURA, y), thickness)
+        
+        # Desenhar números nas coordenadas principais (a cada 20 pixels)
+        font = pygame.font.SysFont("arial", 8)
+        for x in range(0, LARGURA, 20):
+            text = font.render(str(x), True, (255, 255, 0))
+            screen.blit(text, (x + 2, 2))
+        
+        for y in range(20, ALTURA, 20):
+            text = font.render(str(y), True, (255, 255, 0))
+            screen.blit(text, (2, y + 2))
 
     def _get_action_handler(self):
         """Recupera o action_handler de forma segura."""

@@ -5,3 +5,4 @@ opencv-python==4.9.0.80
 numpy==1.26.4
 pygame==2.5.2
 moderngl~=5.12.0
+ultralytics>=8.0.0

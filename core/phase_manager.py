@@ -31,7 +31,7 @@ class PhaseManager:
     def validate_phase(
         self,
         detected_objects: Dict[str, Optional[str]],
-        object_mapping: Dict[str, str]
+        object_mapping: Optional[Dict[str, str]] = None
     ) -> Tuple[bool, str, Dict[str, Optional[int]]]:
         """Valida a fase atual com base nos objetos detectados."""
         if not self.current_phase:

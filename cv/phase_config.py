@@ -4,22 +4,6 @@ Define os circuitos, contextos e regras de cada fase.
 """
 
 # ================================
-# MAPEAMENTO DE OBJETOS DETECTADOS PARA ELEMENTOS DO JOGO
-# ================================
-# Este mapeamento permite trocar facilmente os objetos físicos
-# que representam cada elemento do jogo
-OBJECT_TO_GAME_ELEMENT = {
-    # Inputs (fontes de energia)
-    "remote": "solar_input",     # Energia solar
-    "clock": "wind_input",       # Energia eólica
-    
-    # Portas lógicas
-    "orange": "and_gate",        # Porta AND
-    "cell phone": "or_gate",     # Porta OR
-    "scissors": "not_gate",      # Porta NOT
-}
-
-# ================================
 # CONFIGURAÇÃO DA FASE 1
 # ================================
 FASE1_CONFIG = {
@@ -36,35 +20,35 @@ FASE1_CONFIG = {
     "zones": [
         {
             "name": "INPUT1",
-            "rect": (450, 50, 750, 350),
+            "rect": (370, 335, 500, 460),
             "allowed_elements": ["solar_input", "wind_input"],
             "inputs": [],  # Não tem inputs (é uma fonte)
-            "marker_position": (470, 70),      # Posição do marcador de detecção
-            "result_position": (600, 200),     # Posição do resultado (1/0)
+            "marker_position": (84, 73),
+            "result_position": (50, 40),
         },
         {
             "name": "INPUT2",
-            "rect": (450, 650, 750, 950),
+            "rect": (370, 515, 500, 640),
             "allowed_elements": ["solar_input", "wind_input"],
             "inputs": [],  # Não tem inputs (é uma fonte)
-            "marker_position": (470, 670),
-            "result_position": (600, 800),
+            "marker_position": (84, 125),     # Ajustado para resolução 256x144
+            "result_position": (50, 120),     # Ajustado para resolução 256x144
         },
         {
             "name": "GATE1",
-            "rect": (850, 350, 1150, 650),
+            "rect": (560, 425, 680, 540),
             "allowed_elements": ["and_gate"],
             "inputs": ["INPUT1", "INPUT2"],  # Recebe de INPUT1 e INPUT2
-            "marker_position": (870, 370),
-            "result_position": (1000, 500),
+            "marker_position": (136, 99),     # Centro horizontal, ajustado para 256x144
+            "result_position": (128, 60),     # Ajustado para resolução 256x144
         },
         {
             "name": "GATE2",
-            "rect": (1250, 350, 1550, 650),
+            "rect": (740, 425, 860, 540),
             "allowed_elements": ["not_gate"],
             "inputs": ["GATE1"],  # Recebe de GATE1
-            "marker_position": (1270, 370),
-            "result_position": (1400, 500),
+            "marker_position": (188, 99),     # Lado direito, ajustado para 256x144
+            "result_position": (200, 60),     # Ajustado para resolução 256x144
         },
     ],
 }

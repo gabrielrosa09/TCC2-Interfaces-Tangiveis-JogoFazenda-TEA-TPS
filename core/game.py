@@ -43,7 +43,7 @@ class Game:
         self.brightness_overlay = BrightnessOverlay(LARGURA, ALTURA, default_opacity)
 
         # Audio
-        default_volume = VOLUME_LEVELS.get(DEFAULT_VOLUME_OBJECT, 0.3)
+        default_volume = VOLUME_LEVELS.get(DEFAULT_VOLUME_OBJECT, 0.7)
         music_info = GAME_SOUNDS.get("background_music", {})
         self.audio_manager = AudioManager(
             music_info.get("path", ""),

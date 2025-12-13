@@ -256,7 +256,7 @@ class VisualRenderer:
         )
 
     def _draw_object_detections(self, frame, detections):
-        """Desenha bounding boxes e labels dos objetos detectados."""
+        """Desenha bounding boxes e labels dos objetos detectados (YOLO)."""
         # Cores para diferentes objetos (BGR)
         colors = [
             (0, 255, 0),  # Verde
@@ -268,24 +268,16 @@ class VisualRenderer:
         ]
 
         for detection in detections:
-            if not detection.categories:
-                continue
-
-            # Obter categoria e confiança
-            category = detection.categories[0]
-            label = category.category_name
-            confidence = category.score
-
-            # Obter coordenadas do bounding box
-            bbox = detection.bounding_box
-            x = int(bbox.origin_x)
-            y = int(bbox.origin_y)
-            width = int(bbox.width)
-            height = int(bbox.height)
+            # Obter informações da detecção YOLO
+            label = detection['name']
+            confidence = detection['confidence']
+            bbox = detection['bbox']
 
             # Coordenadas do retângulo
-            x1, y1 = x, y
-            x2, y2 = x + width, y + height
+            x1 = bbox['x1']
+            y1 = bbox['y1']
+            x2 = bbox['x2']
+            y2 = bbox['y2']
 
             # Escolher cor baseada no hash do label
             color = colors[hash(label) % len(colors)]
