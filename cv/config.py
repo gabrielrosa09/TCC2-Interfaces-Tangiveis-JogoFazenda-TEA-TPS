@@ -2,14 +2,15 @@
 
 from cv.gesture_actions import GestureAction, get_gestures_for_actions
 from cv.object_actions import ObjectAction, get_objects_for_actions
+from config import *
 
 
 # ================================
 # CONFIGURAÇÕES DA CÂMERA
 # ================================
-CAMERA_WIDTH = 1920
-CAMERA_HEIGHT = 1080
-CAMERA_INDEX = 0
+CAMERA_WIDTH = 1280
+CAMERA_HEIGHT = 720
+CAMERA_INDEX = 1
 
 # ================================
 # CONFIGURAÇÕES DO MEDIAPIPE - GESTOS
@@ -23,7 +24,7 @@ MIN_TRACKING_CONFIDENCE = 0.5
 # ================================
 # CONFIGURAÇÕES DO MEDIAPIPE - OBJETOS
 # ================================
-OBJECT_MODEL_PATH = "cv/mediapipe_models/efficientdet_lite0.tflite"
+OBJECT_MODEL_PATH = "cv/mediapipe_models/best.pt"
 MAX_OBJECT_RESULTS = 17
 MIN_OBJECT_DETECTION_CONFIDENCE = 0.3
 
@@ -42,12 +43,13 @@ TEXT_THICKNESS = 2
 # CONFIGURAÇÕES DE ZONAS
 # ================================
 ZONE_COLORS = {
-    "GESTOS": (0, 0, 0),  # Preto
-    "SOM": (255, 0, 0),  # Vermelho
-    "BRILHO": (0, 255, 0),  # Verde
-    "TAMANHO_FONTE": (0, 0, 255),  # Azul
-    "OBJETOS": (0, 255, 255),  # Amarelo
-    "DEFAULT": (128, 128, 128),  # Cinza
+    "GESTOS": PRETO,
+    "SOM": AZUL,
+    "BRILHO": BRANCO,
+    "TAMANHO_FONTE": VERMELHO,
+    "COR": VERDE,
+    "OBJETOS": AMARELO,
+    "DEFAULT": CINZA,
 }
 
 # ================================
@@ -67,43 +69,44 @@ SUPPORTED_GESTURES = [
 # CONFIGURAÇÕES DE OBJETOS
 # ================================
 SUPPORTED_OBJECTS = {
-    "cup",
-    "fork",
-    "knife",
-    "spoon",
-    "banana",
-    "apple",
-    "orange",
-    "broccoli",
-    "carrot",
-    "mouse",
-    "remote",
-    "cell phone",
-    "clock",
-    "toothbrush",
-    "scissors",
+    "and_gate",
+    "colorful",
+    "high_brightness",
+    "high_volume",
+    "large_font",
+    "low_brightness",
+    "low_volume",
+    "medium_brightness",
+    "medium_font",
+    "medium_volume",
+    "mute_volume",
+    "not_colored",
+    "not_gate",
+    "or_gate",
+    "solar_input",
+    "wind_input",
 }
 
 # ================================
 # CONFIGURAÇÕES DE BRILHO
 # ================================
 BRIGHTNESS_LEVELS = {
-    "apple": 0,    # 100% de brilho (sem escurecimento)
-    "cup": 102,       # 60% de brilho (40% de opacidade)
-    "fork": 179,      # 30% de brilho (70% de opacidade)
+    "high_brightness": 0,  # 100% de brilho (sem escurecimento)
+    "medium_brightness": 102,  # 60% de brilho (40% de opacidade)
+    "low_brightness": 179,  # 30% de brilho (70% de opacidade)
 }
-DEFAULT_BRIGHTNESS_OBJECT = "apple"
+DEFAULT_BRIGHTNESS_OBJECT = "high_brightness"
 
 # ================================
 # CONFIGURAÇÕES DE VOLUME
 # ================================
 VOLUME_LEVELS = {
-    "toothbrush": 0.7,          # 100% de volume
-    "orange": 0.5,          # 70% de volume
-    "banana": 0.3,      # 40% de volume
-    "broccoli": 0.0,        # 0% de volume (mudo)
+    "high_volume": 0.7,  # 100% de volume
+    "medium_volume": 0.5,  # 70% de volume
+    "low_volume": 0.3,  # 40% de volume
+    "mute_volume": 0.0,  # 0% de volume (mudo)
 }
-DEFAULT_VOLUME_OBJECT = "banana"
+DEFAULT_VOLUME_OBJECT = "high_volume"
 
 # ================================
 # CONFIGURAÇÕES DE SONS DO JOGO
@@ -120,10 +123,10 @@ GAME_SOUNDS = {
 # CONFIGURAÇÕES DE COR
 # ================================
 COLOR_MODES = {
-    "cell phone": "color",      # Modo colorido (padrão)
-    "clock": "grayscale",       # Modo preto e branco (escala de cinza)
+    "colorful": "color",  # Modo colorido (padrão)
+    "not_colored": "grayscale",  # Modo preto e branco (escala de cinza)
 }
-DEFAULT_COLOR_MODE_OBJECT = "cell phone"
+DEFAULT_COLOR_MODE_OBJECT = "colorful"
 
 BACKGROUND_MUSIC_PATH = ""
 
@@ -222,7 +225,7 @@ GAME_STATES = {"MENU": "menu", "TUTORIAL": "tutorial", "FASE1": "fase1"}
 CONFIG_ZONES = [
     {
         "name": "SOM",
-        "rect": (0, 0, 300, 300),
+        "rect": (283, 0, 433, 133),
         "color": ZONE_COLORS["SOM"],
         "gestures": [],
         "objects": get_objects_for_actions(
@@ -232,7 +235,7 @@ CONFIG_ZONES = [
     },
     {
         "name": "BRILHO",
-        "rect": (400, 0, 700, 300),
+        "rect": (433, 0, 583, 133),
         "color": ZONE_COLORS["BRILHO"],
         "gestures": [],
         "objects": get_objects_for_actions(
@@ -242,7 +245,17 @@ CONFIG_ZONES = [
     },
     {
         "name": "COR",
-        "rect": (800, 0, 1100, 300),
+        "rect": (583, 0, 733, 133),
+        "color": ZONE_COLORS["COR"],
+        "gestures": [],
+        "objects": get_objects_for_actions(
+            OBJECT_ACTIONS,
+            "CHANGE_COLOR_MODE",
+        ),
+    },
+    {
+        "name": "TAMANHO DA FONTE",
+        "rect": (733, 0, 883, 133),
         "color": ZONE_COLORS["TAMANHO_FONTE"],
         "gestures": [],
         "objects": get_objects_for_actions(
@@ -255,31 +268,31 @@ CONFIG_ZONES = [
 FASE1_MATRIX_ZONES = [
     {
         "name": "INPUT1",
-        "rect": (450, 50, 750, 350),
+        "rect": (370, 335, 500, 460),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": ["cell phone", "clock"],  # Aceita inputs de energia
+        "objects": ["solar_input", "wind_input"],
     },
     {
         "name": "INPUT2",
-        "rect": (450, 650, 750, 950),
+        "rect": (370, 515, 500, 640),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": ["cell phone", "clock"],  # Aceita inputs de energia
+        "objects": ["solar_input", "wind_input"],
     },
     {
         "name": "GATE1",
-        "rect": (850, 350, 1150, 650),
+        "rect": (560, 425, 680, 540),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": ["toothbrush"],  # Aceita apenas AND gate
+        "objects": ["and_gate"],
     },
     {
         "name": "GATE2",
-        "rect": (1250, 350, 1550, 650),
+        "rect": (740, 425, 860, 540),
         "color": ZONE_COLORS["OBJETOS"],
         "gestures": [],
-        "objects": ["banana"],  # Aceita apenas NOT gate
+        "objects": ["not_gate"],
     },
 ]
 
@@ -291,7 +304,7 @@ FASE1_MATRIX_ZONES = [
 TUTORIAL_ZONES = [
     {
         "name": "GESTOS_ESQUERDA",
-        "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
+        "rect": (0, CAMERA_HEIGHT - 300, 300, CAMERA_HEIGHT),
         "color": ZONE_COLORS["GESTOS"],
         "gestures": get_gestures_for_actions(
             GESTURE_ACTIONS, "TUTORIAL_PREVIOUS", "EXIT_GAME"
@@ -300,7 +313,12 @@ TUTORIAL_ZONES = [
     },
     {
         "name": "GESTOS_DIREITA",
-        "rect": (CAMERA_WIDTH - 400, CAMERA_HEIGHT - 300, CAMERA_WIDTH - 25, CAMERA_HEIGHT - 100),
+        "rect": (
+            CAMERA_WIDTH - 300,
+            CAMERA_HEIGHT - 300,
+            CAMERA_WIDTH,
+            CAMERA_HEIGHT,
+        ),
         "color": ZONE_COLORS["GESTOS"],
         "gestures": get_gestures_for_actions(
             GESTURE_ACTIONS, "TUTORIAL_NEXT", "TUTORIAL_SKIP"
@@ -340,7 +358,7 @@ SCREEN_ZONES = {
     "fase1": [
         {
             "name": "GESTOS_ESQUERDA",
-            "rect": (25, CAMERA_HEIGHT - 300, 400, CAMERA_HEIGHT - 100),
+            "rect": (0, CAMERA_HEIGHT - 300, 300, CAMERA_HEIGHT),
             "color": ZONE_COLORS["GESTOS"],
             "gestures": get_gestures_for_actions(
                 GESTURE_ACTIONS, "PHASE_RETURN_TUTORIAL", "EXIT_GAME"
@@ -349,7 +367,12 @@ SCREEN_ZONES = {
         },
         {
             "name": "GESTOS_DIREITA",
-            "rect": (CAMERA_WIDTH - 400, CAMERA_HEIGHT - 300, CAMERA_WIDTH - 25, CAMERA_HEIGHT - 100),
+            "rect": (
+                CAMERA_WIDTH - 300,
+                CAMERA_HEIGHT - 300,
+                CAMERA_WIDTH,
+                CAMERA_HEIGHT,
+            ),
             "color": ZONE_COLORS["GESTOS"],
             "gestures": get_gestures_for_actions(
                 GESTURE_ACTIONS, "PHASE_REPEAT_NARRATION", "PHASE_VALIDATE"
@@ -357,6 +380,6 @@ SCREEN_ZONES = {
             "objects": [],
         },
         *FASE1_MATRIX_ZONES,
-        # *CONFIG_ZONES,
+        *CONFIG_ZONES,
     ],
 }

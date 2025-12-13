@@ -94,8 +94,8 @@ class GestureCamera:
                     print("Erro ao capturar frame da câmera.")
                     break
 
-                # Espelhar frame horizontalmente
-                frame = cv2.flip(frame, 1)
+                # Espelhar frame horizontalmente (desabilitado)
+                # frame = cv2.flip(frame, 1)
 
                 # Converter para formato do MediaPipe
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

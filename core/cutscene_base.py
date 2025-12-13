@@ -173,12 +173,6 @@ class CutsceneBase:
 
             y += self.line_spacing
 
-        # Texto "pressione qualquer tecla"
-        if self.char_index >= len(self.text) and not self.fading_out:
-            tip = self.font.render("(Pressione qualquer tecla para continuar)", True, CINZA)
-            tip_rect = tip.get_rect(center=(LARGURA // 2, ALTURA - 10))
-            screen.blit(tip, tip_rect)
-
         # Efeito fade
         if self.fade_alpha > 0:
             fade_surface = pygame.Surface((LARGURA, ALTURA))
