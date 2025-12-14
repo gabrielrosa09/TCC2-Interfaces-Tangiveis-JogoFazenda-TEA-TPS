@@ -138,4 +138,34 @@ class PhaseManager:
     def get_current_phase_info(self) -> Optional[Dict[str, Any]]:
         """Retorna informações da fase atual."""
         return self.current_phase
+    
+    def calculate_zone_values(
+        self,
+        detected_objects: Dict[str, Optional[str]],
+        object_mapping: Optional[Dict[str, str]] = None
+    ):
+        """Calcula os valores das zonas sem fazer validação completa.
+        
+        Este método atualiza continuamente os valores dos displays baseado
+        nos objetos detectados, sem verificar se a fase foi completada.
+        """
+        if not self.current_phase:
+            return
+        
+        # Obter configurações da fase
+        zones_config = self.current_phase.get("zones", [])
+        input_values = self.current_phase.get("inputs", {})
+        evaluation_order = self.current_phase.get("evaluation_order", [])
+        
+        # Avaliar o circuito (mesmo que incompleto)
+        zone_values, errors = self.circuit_evaluator.evaluate_circuit(
+            zones_config,
+            detected_objects,
+            input_values,
+            object_mapping,
+            evaluation_order
+        )
+        
+        # Armazenar resultados para exibição (sem marcar como validação completa)
+        self.last_validation_results = zone_values
 

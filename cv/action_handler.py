@@ -33,6 +33,9 @@ class ActionHandler:
 
         self.ui_feedback_text = ""
         self.new_feedback_available = False
+        
+        # Controle de atualização contínua dos displays
+        self.auto_update_displays = True
 
     def execute_action(self, recognition_name, zone_name, item_info, recognition_type="gesture"):
         """Executa ação baseada no reconhecimento (gesto/objeto), zona e tela atual."""
@@ -264,6 +267,34 @@ class ActionHandler:
     def get_phase_manager(self):
         """Retorna o gerenciador de fases."""
         return self.phase_manager
+    
+    def update_display_values(self):
+        """Atualiza os valores dos displays baseado nos objetos detectados (sem validar a fase)."""
+        if not self.auto_update_displays:
+            return
+        
+        # Verificar se estamos em uma fase
+        current_state = self.zone_manager.current_game_state
+        if current_state not in ["fase1"]:
+            return
+        
+        # Determinar qual fase estamos
+        phase_id = 1 if current_state == "fase1" else None
+        if phase_id is None:
+            return
+        
+        # Carregar configuração da fase se necessário
+        if self.current_phase_id != phase_id:
+            phase_config = get_phase_config(phase_id)
+            if phase_config:
+                self.phase_manager.set_phase(phase_config)
+                self.current_phase_id = phase_id
+        
+        # Obter objetos detectados nas zonas
+        detected_objects = self.zone_manager.get_all_zone_objects()
+        
+        # Calcular valores sem validar (apenas para exibição)
+        self.phase_manager.calculate_zone_values(detected_objects)
 
     def _repeat_narration(self, zone_name=None):
         """Repete a narração atual."""

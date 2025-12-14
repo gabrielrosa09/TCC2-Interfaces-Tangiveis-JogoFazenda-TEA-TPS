@@ -80,8 +80,23 @@ class Fase1State:
         self.images['panel'] = self._load_sprite("assets/images/final_images/painel_noite_comVento.png")
         self.images['fase_demo_noite'] = self._load_sprite("assets/images/final_images/fase_demo_noite.png")
 
-        self.images['display_0'] = self._load_sprite("assets/images/final_images/val_inf_Display_1.png")
-        self.images['display_1'] = self._load_sprite("assets/images/final_images/val_sup_Display_0.png")
+        # Carregar todos os displays de valores (INPUT1 e INPUT2)
+        self.images['val_inf_display_0'] = self._load_sprite("assets/images/final_images/val_inf_Display_0.png")
+        self.images['val_inf_display_1'] = self._load_sprite("assets/images/final_images/val_inf_Display_1.png")
+        self.images['val_inf_display_vazio'] = self._load_sprite("assets/images/final_images/val_inf_Display_Vazio.png")
+        
+        self.images['val_sup_display_0'] = self._load_sprite("assets/images/final_images/val_sup_Display_0.png")
+        self.images['val_sup_display_1'] = self._load_sprite("assets/images/final_images/val_sup_Display_1.png")
+        self.images['val_sup_display_vazio'] = self._load_sprite("assets/images/final_images/val_sup_Display_Vazio.png")
+        
+        # Carregar displays das portas lógicas (GATE1 e GATE2)
+        self.images['portaLog_display_0'] = self._load_sprite("assets/images/final_images/portaLog_Display_0.png")
+        self.images['portaLog_display_1'] = self._load_sprite("assets/images/final_images/portaLog_Display_1.png")
+        self.images['portaLog_display_vazio'] = self._load_sprite("assets/images/final_images/portaLog_Display_Vazio.png")
+        
+        self.images['portaNot_display_0'] = self._load_sprite("assets/images/final_images/portaNot_Display_0.png")
+        self.images['portaNot_display_1'] = self._load_sprite("assets/images/final_images/portaNot_Display_1.png")
+        self.images['portaNot_display_vazio'] = self._load_sprite("assets/images/final_images/portaNot_Display_Vazio.png")
 
     # -------------------------------------------------------------------------
     # POSICIONAMENTO DOS ELEMENTOS
@@ -119,17 +134,26 @@ class Fase1State:
             r.y += 0
             r.x += 0
             self.rects['cow'] = r
-
-        if self.images.get('display_0'):
-            r = self.images['display_0'].get_rect()
-            r.topleft = (0, 0)
-            self.rects['display_0'] = r
-
-        if self.images.get('display_1'):
-            r = self.images['display_1'].get_rect()
-            r.x = 0
-            r.y = 0
-            self.rects['display_1'] = r
+        
+        # INPUT1 (superior) - val_sup
+        if self.images.get('val_sup_display_vazio'):
+            r = self.images['val_sup_display_vazio'].get_rect()
+            self.rects['INPUT1_display'] = r
+        
+        # INPUT2 (inferior) - val_inf
+        if self.images.get('val_inf_display_vazio'):
+            r = self.images['val_inf_display_vazio'].get_rect()
+            self.rects['INPUT2_display'] = r
+        
+        # GATE1 (porta AND) - portaLog
+        if self.images.get('portaLog_display_vazio'):
+            r = self.images['portaLog_display_vazio'].get_rect()
+            self.rects['GATE1_display'] = r
+        
+        # GATE2 (porta NOT) - portaNot
+        if self.images.get('portaNot_display_vazio'):
+            r = self.images['portaNot_display_vazio'].get_rect()
+            self.rects['GATE2_display'] = r
 
     # -------------------------------------------------------------------------
     # EVENTOS / UPDATE
@@ -149,6 +173,11 @@ class Fase1State:
             self.current_cow_frame = (self.current_cow_frame + 1) % len(self.cow_frames)
 
         action_handler = self._get_action_handler()
+        
+        # Atualizar valores dos displays continuamente
+        if action_handler:
+            action_handler.update_display_values()
+        
         if action_handler and action_handler.new_feedback_available:
             # Pega o texto
             new_msg = action_handler.ui_feedback_text
@@ -203,11 +232,8 @@ class Fase1State:
             frame = self.cow_frames[self.current_cow_frame]
             screen.blit(frame, self.rects['cow'])
 
-        if 'display_0' in self.rects:
-            screen.blit(self.images['display_0'], self.rects['display_0'])
-
-        if 'display_1' in self.rects:
-            screen.blit(self.images['display_1'], self.rects['display_1'])
+        # Desenhar displays dinâmicos baseados nos valores calculados
+        self._draw_dynamic_displays(screen)
 
         # Desenhar grade de 5x5 pixels para facilitar posicionamento
         # self._draw_grid(screen)
@@ -346,3 +372,68 @@ class Fase1State:
             if hasattr(self.game.game_controller, 'camera') and self.game.game_controller.camera:
                 return self.game.game_controller.camera.action_handler
         return None
+    
+    def _draw_dynamic_displays(self, screen):
+        """Desenha os displays com os valores dinâmicos calculados pelo circuito."""
+        action_handler = self._get_action_handler()
+        if not action_handler:
+            # Se não há action_handler, desenha displays vazios
+            self._draw_empty_displays(screen)
+            return
+        
+        phase_manager = action_handler.get_phase_manager()
+        if not phase_manager:
+            self._draw_empty_displays(screen)
+            return
+        
+        # Obter valores calculados das zonas
+        zone_values = phase_manager.get_validation_results()
+        
+        # Mapeamento de zonas para tipos de display
+        display_mapping = {
+            'INPUT1': 'val_sup',      # Display superior (INPUT1)
+            'INPUT2': 'val_inf',      # Display inferior (INPUT2)
+            'GATE1': 'portaLog',      # Display da porta lógica (AND)
+            'GATE2': 'portaNot',      # Display da porta NOT
+        }
+        
+        # Desenhar cada display baseado no valor calculado
+        for zone_name, display_prefix in display_mapping.items():
+            rect_key = f'{zone_name}_display'
+            
+            if rect_key not in self.rects:
+                continue
+            
+            # Obter o valor da zona
+            value = zone_values.get(zone_name)
+            
+            # Selecionar o asset correto baseado no valor
+            if value is None:
+                # Sem valor calculado = display vazio
+                image_key = f'{display_prefix}_display_vazio'
+            elif value == 0:
+                # Valor 0
+                image_key = f'{display_prefix}_display_0'
+            elif value == 1:
+                # Valor 1
+                image_key = f'{display_prefix}_display_1'
+            else:
+                # Valor inválido = display vazio
+                image_key = f'{display_prefix}_display_vazio'
+            
+            # Desenhar o display se a imagem existir
+            if image_key in self.images:
+                screen.blit(self.images[image_key], self.rects[rect_key])
+    
+    def _draw_empty_displays(self, screen):
+        """Desenha todos os displays vazios (quando não há valores calculados)."""
+        empty_displays = [
+            ('INPUT1_display', 'val_sup_display_vazio'),
+            ('INPUT2_display', 'val_inf_display_vazio'),
+            ('GATE1_display', 'portaLog_display_vazio'),
+            ('GATE2_display', 'portaNot_display_vazio'),
+        ]
+        
+        for rect_key, image_key in empty_displays:
+            if rect_key in self.rects and image_key in self.images:
+                screen.blit(self.images[image_key], self.rects[rect_key])
