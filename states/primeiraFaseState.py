@@ -338,6 +338,19 @@ class Fase1State:
         self.shown_chars = 0
         self.last_text_update = pygame.time.get_ticks()
         self.typewriter_started = False
+    
+    def repeat_dialog_text(self):
+        """Repete o texto inicial da fase (dialog_text original).
+        
+        Este método é chamado quando o jogador faz o gesto de "repetir narração".
+        Ele sempre volta para o texto inicial da fase, não importa qual texto
+        esteja sendo exibido no momento.
+        """
+        # Volta para o texto inicial da fase
+        self.full_dialog_text = self.dialog_text
+        self.shown_chars = 0
+        self.last_text_update = pygame.time.get_ticks()
+        self.typewriter_started = False
 
     def _draw_grid(self, screen):
         """Desenha uma grade de 5x5 pixels para facilitar posicionamento."""

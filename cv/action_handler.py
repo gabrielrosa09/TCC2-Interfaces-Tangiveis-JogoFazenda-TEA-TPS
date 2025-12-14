@@ -297,9 +297,21 @@ class ActionHandler:
         self.phase_manager.calculate_zone_values(detected_objects)
 
     def _repeat_narration(self, zone_name=None):
-        """Repete a narração atual."""
-        print("[AUDIO] REPETINDO NARRACAO...")
-        pass
+        """Repete o texto da caixa de diálogo (reinicia a animação typewriter)."""
+        print("[NARRAÇÃO] REPETINDO TEXTO DA CAIXA DE DIÁLOGO...")
+        
+        # Acessar o state atual e reiniciar o texto
+        if self.game_controller and hasattr(self.game_controller, 'game'):
+            game = self.game_controller.game
+            if hasattr(game, 'state_manager') and game.state_manager.current_state:
+                current_state = game.state_manager.current_state
+                
+                # Verificar se o state tem o método para repetir o texto
+                if hasattr(current_state, 'repeat_dialog_text'):
+                    current_state.repeat_dialog_text()
+                    print("[NARRAÇÃO] Texto reiniciado com sucesso!")
+                else:
+                    print("[AVISO] State atual não possui método repeat_dialog_text()")
     
     def _tutorial_previous_cutscene(self, zone_name=None):
         """Volta para a cutscene anterior do tutorial."""
