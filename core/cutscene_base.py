@@ -1,6 +1,5 @@
 import pygame
 from config import *
-import numpy as np
 
 class CutsceneBase:
     def __init__(self, game, text, next_state, background=None, typing_speed=40, fade_duration=1000):
@@ -29,8 +28,6 @@ class CutsceneBase:
         self.margin = 4
         self.line_spacing = 9
 
-        self.type_sound = self.generate_soft_plim()
-
     def _update_font(self):
         """Atualiza a fonte a partir do FontManager."""
         if hasattr(self.game, 'font_manager'):
@@ -44,26 +41,6 @@ class CutsceneBase:
             except:
                 self.font = pygame.font.SysFont("arial", 12)
                 self.line_spacing = 1
-
-    def generate_soft_plim(self):
-        try:
-            pygame.mixer.init(frequency=44100, channels=2)
-            sample_rate = 44100
-            duration = 0.05
-            frequency = 400
-
-            t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-            fade = np.linspace(1.0, 0.0, len(t))
-            wave = (np.sin(2 * np.pi * frequency * t) * fade * 0.3).astype(np.float32)
-
-            stereo_wave = np.column_stack((wave, wave))
-
-            sound = pygame.sndarray.make_sound((stereo_wave * 32767).astype(np.int16))
-            sound.set_volume(0.1)
-            return sound
-        except Exception as e:
-            print(f"[Aviso] Erro ao gerar som de digitação sintético: {e}")
-            return None
 
     def wrap_text(self, text, max_width):
         # Remove quebras e cria quebras automáticas antes de falas
@@ -93,16 +70,7 @@ class CutsceneBase:
         return lines
 
     def handle_events(self, events):
-        for e in events:
-            if e.type == pygame.KEYDOWN or e.type == pygame.MOUSEBUTTONDOWN:
-
-                if self.char_index < len(self.text):
-                    self.displayed_text = self.text
-                    self.char_index = len(self.text)
-
-                elif not self.fading_out:
-                    self.fading_out = True
-                    self.fade_start = pygame.time.get_ticks()
+        pass
 
     def update(self):
         # Atualizar fonte caso tenha mudado
@@ -122,8 +90,6 @@ class CutsceneBase:
                 self.displayed_text += self.text[self.char_index]
                 self.char_index += 1
                 self.last_update = now
-                if self.type_sound:
-                    self.type_sound.play()
 
         if self.fading_out:
             elapsed = now - self.fade_start
