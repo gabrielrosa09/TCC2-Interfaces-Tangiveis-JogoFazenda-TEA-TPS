@@ -146,7 +146,6 @@ class ActionHandler:
             if action_key in OBJECT_ACTIONS:
                 action = OBJECT_ACTIONS[action_key]
                 if action.is_object_valid(object_name):
-                    print(f"[ACAO] Executando acao de objeto: {action.description}")
                     action.execute(self, object_name=object_name, zone_name=zone_name)
                     return
 

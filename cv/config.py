@@ -95,7 +95,7 @@ SUPPORTED_OBJECTS = {
 BRIGHTNESS_LEVELS = {
     "high_brightness": 0,  # 100% de brilho (sem escurecimento)
     "medium_brightness": 102,  # 60% de brilho (40% de opacidade)
-    "low_brightness": 179,  # 30% de brilho (70% de opacidade)
+    "low_brightness": 140,  # 45% de brilho (55% de opacidade)
 }
 DEFAULT_BRIGHTNESS_OBJECT = "high_brightness"
 
@@ -103,9 +103,9 @@ DEFAULT_BRIGHTNESS_OBJECT = "high_brightness"
 # CONFIGURAÇÕES DE VOLUME
 # ================================
 VOLUME_LEVELS = {
-    "high_volume": 0.7,  # 100% de volume
-    "medium_volume": 0.5,  # 70% de volume
-    "low_volume": 0.2,  # 40% de volume
+    "high_volume": 0.8,  # 80% de volume
+    "medium_volume": 0.5,  # 50% de volume
+    "low_volume": 0.2,  # 20% de volume
     "mute_volume": 0.0,  # 0% de volume (mudo)
 }
 DEFAULT_VOLUME_OBJECT = "high_volume"

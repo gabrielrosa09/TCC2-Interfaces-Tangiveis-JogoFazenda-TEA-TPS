@@ -172,7 +172,6 @@ class ObjectProcessor(BaseRecognitionProcessor):
                     objects = zone_object_tracking[zone_name]
                     best_object = max(objects, key=lambda x: x["confidence"])
                     self.zone_manager.update_zone_object(zone_name, best_object["name"])
-                    print(f"[ZONA] {zone_name}: '{best_object['name']}' detectado (conf: {best_object['confidence']:.2f})")
                 else:
                     # Nenhum objeto detectado nesta zona
                     self.zone_manager.update_zone_object(zone_name, None)

@@ -183,16 +183,7 @@ class CircuitEvaluator:
         object_mapping: Optional[Dict[str, str]],
         evaluation_order: List[str]
     ) -> Tuple[Dict[str, Optional[int]], List[str]]:
-        """Avalia todo o circuito seguindo a ordem de avaliação.
-        
-        Args:
-            zones_config: Configuração das zonas
-            detected_objects: Objetos detectados por zona
-            input_values: Valores dos inputs (solar, eolico)
-            object_mapping: Mapeamento opcional de objetos para elementos do jogo.
-                           Se None, assume que os objetos já têm os nomes corretos.
-            evaluation_order: Ordem de avaliação das zonas
-        """
+        """Avalia todo o circuito seguindo a ordem de avaliação."""
         self.zone_values = {}
         self.zone_objects = detected_objects.copy()
         errors = []

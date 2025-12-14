@@ -108,9 +108,6 @@ class BaseRecognitionProcessor:
                     return
 
                 # Para outras zonas, executar ação normalmente
-                print(
-                    f"Executando ação validada ({self.recognition_type}): {recognition_name} | {zone_name} | {item_key} | Confiança: {confidence:.2f}"
-                )
                 self.action_handler.execute_action(
                     recognition_name, zone_name, item_key, self.recognition_type
                 )
