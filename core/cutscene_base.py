@@ -9,7 +9,11 @@ class CutsceneBase:
         self.text = text
         self.next_state = next_state
         self.background = background
-        self.font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
+        
+        # Usar fonte do FontManager
+        self.font = None
+        self._update_font()
+        
         self.typing_speed = typing_speed
         self.fade_duration = fade_duration
 
@@ -26,6 +30,20 @@ class CutsceneBase:
         self.line_spacing = 9
 
         self.type_sound = self.generate_soft_plim()
+
+    def _update_font(self):
+        """Atualiza a fonte a partir do FontManager."""
+        if hasattr(self.game, 'font_manager'):
+            self.font = self.game.font_manager.get_font()
+            self.line_spacing = self.game.font_manager.get_line_spacing()
+        else:
+            # Fallback caso o FontManager não esteja disponível
+            try:
+                self.font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
+                self.line_spacing = 1
+            except:
+                self.font = pygame.font.SysFont("arial", 12)
+                self.line_spacing = 1
 
     def generate_soft_plim(self):
         try:
@@ -87,6 +105,9 @@ class CutsceneBase:
                     self.fade_start = pygame.time.get_ticks()
 
     def update(self):
+        # Atualizar fonte caso tenha mudado
+        self._update_font()
+        
         now = pygame.time.get_ticks()
 
         if self.fading_in:
@@ -145,7 +166,7 @@ class CutsceneBase:
                 rect = surface.get_rect(midtop=(LARGURA // 2, y))
 
                 screen.blit(surface, rect)
-                y += self.line_spacing
+                y += self.font.get_linesize() + self.line_spacing
                 continue
 
             # ----------------------------
@@ -171,7 +192,7 @@ class CutsceneBase:
                 else:
                     x += w_width
 
-            y += self.line_spacing
+            y += self.font.get_linesize() + self.line_spacing
 
         # Efeito fade
         if self.fade_alpha > 0:

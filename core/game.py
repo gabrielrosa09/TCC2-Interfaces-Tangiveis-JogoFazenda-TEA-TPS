@@ -10,6 +10,7 @@ from states.cutscene6_inicio_missoes import Cutscene6_InicioMissoes
 from core.brightness_overlay import BrightnessOverlay
 from core.audio_manager import AudioManager
 from core.color_filter import ColorFilter
+from core.font_manager import FontManager
 from states.menu import MenuState
 from states.tutorial import TutorialState
 from states.primeiraFaseState import Fase1State
@@ -22,6 +23,8 @@ from cv.config import (
     GAME_SOUNDS,
     COLOR_MODES,
     DEFAULT_COLOR_MODE_OBJECT,
+    FONT_SIZES,
+    DEFAULT_FONT_OBJECT,
 )
 
 
@@ -62,6 +65,9 @@ class Game:
         # Filtro de cor
         default_color_mode = COLOR_MODES.get(DEFAULT_COLOR_MODE_OBJECT, "color")
         self.color_filter = ColorFilter(LARGURA, ALTURA, default_color_mode)
+
+        # Gerenciador de fontes
+        self.font_manager = FontManager()
 
         # States
         self.state_manager = StateManager()

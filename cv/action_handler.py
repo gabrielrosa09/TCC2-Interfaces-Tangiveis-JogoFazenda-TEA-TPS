@@ -128,9 +128,9 @@ class ActionHandler:
     def _handle_object_actions(self, object_name, zone_name, current_state, item_info=None):
         """Gerencia ações baseadas no objeto, zona e estado atual do jogo."""
         state_actions = {
-            "menu": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
-            "tutorial": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
-            "fase1": ["FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT", "CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE"],
+            "menu": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE", "CHANGE_FONT_SIZE"],
+            "tutorial": ["CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE", "CHANGE_FONT_SIZE"],
+            "fase1": ["FEED_ANIMAL", "USE_TOOL", "PLACE_OBJECT", "CHANGE_BRIGHTNESS", "CHANGE_VOLUME", "CHANGE_COLOR_MODE", "CHANGE_FONT_SIZE"],
         }
         
         # Verificar se o estado atual é uma cutscene do tutorial
@@ -483,3 +483,27 @@ class ActionHandler:
                     print("[AVISO] ColorFilter nao encontrado no jogo")
         else:
             print(f"[AVISO] Objeto '{object_name}' nao possui configuracao de cor")
+
+    def _change_font_size(self, object_name=None, zone_name=None):
+        """Altera o tamanho da fonte baseado no objeto detectado."""
+        from cv.config import FONT_SIZES
+
+        if object_name and object_name in FONT_SIZES:
+            font_config = FONT_SIZES[object_name]
+
+            # Atualizar a fonte no jogo
+            if self.game_controller and hasattr(self.game_controller, "game"):
+                if hasattr(self.game_controller.game, "font_manager"):
+                    # Verificar se a fonte já está configurada
+                    current_font = self.game_controller.game.font_manager.get_current_font()
+                    
+                    if current_font == object_name:
+                        return
+                    
+                    print(f"[FONTE] ALTERANDO FONTE: {font_config['description']}")
+                    self.game_controller.game.font_manager.set_font(object_name, font_config)
+                    print(f"[FONTE] Fonte alterada com sucesso!")
+                else:
+                    print("[AVISO] FontManager nao encontrado no jogo")
+        else:
+            print(f"[AVISO] Objeto '{object_name}' nao possui configuracao de fonte")

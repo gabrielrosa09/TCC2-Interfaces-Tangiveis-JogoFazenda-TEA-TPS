@@ -130,6 +130,25 @@ COLOR_MODES = {
 }
 DEFAULT_COLOR_MODE_OBJECT = "colorful"
 
+# ================================
+# CONFIGURAÇÕES DE FONTE
+# ================================
+FONT_SIZES = {
+    "medium_font": {
+        "path": "assets/fonts/MinecraftStandard.otf",
+        "size": 6,
+        "line_spacing": 1,
+        "description": "Fonte média - MinecraftStandard 6px"
+    },
+    "large_font": {
+        "path": "assets/fonts/aurora-24.ttf",
+        "size": 9,
+        "line_spacing":-6,
+        "description": "Fonte grande - Aurora 9px"
+    },
+}
+DEFAULT_FONT_OBJECT = "medium_font"
+
 BACKGROUND_MUSIC_PATH = ""
 
 # ================================
@@ -214,6 +233,12 @@ OBJECT_ACTIONS = {
         action_func="_change_color_mode",
         description="Altera o modo de cor da interface",
     ),
+    "CHANGE_FONT_SIZE": ObjectAction(
+        name="CHANGE_FONT_SIZE",
+        objects=list(FONT_SIZES.keys()),
+        action_func="_change_font_size",
+        description="Altera o tamanho da fonte",
+    ),
 }
 
 # ================================
@@ -262,7 +287,7 @@ CONFIG_ZONES = [
         "gestures": [],
         "objects": get_objects_for_actions(
             OBJECT_ACTIONS,
-            "CHANGE_COLOR_MODE",
+            "CHANGE_FONT_SIZE",
         ),
     },
 ]

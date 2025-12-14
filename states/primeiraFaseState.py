@@ -6,12 +6,10 @@ class Fase1State:
     def __init__(self, game):
         self.game = game
 
-        try:
-            self.font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
-            self.result_font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
-        except:
-            self.font = pygame.font.SysFont("arial", 30)
-            self.result_font = pygame.font.SysFont("arial", 60)
+        # Usar fonte do FontManager
+        self.font = None
+        self.result_font = None
+        self._update_fonts()
 
         self.text_color = (89, 86, 82)
         self.dialog_text = ("Muuu! Olha só o que temos disponível hoje, que sorte! "
@@ -39,6 +37,24 @@ class Fase1State:
         self._load_assets()
         self._load_cow_animation()
         self._setup_layout()
+
+    # -------------------------------------------------------------------------
+    # GERENCIAMENTO DE FONTES
+    # -------------------------------------------------------------------------
+
+    def _update_fonts(self):
+        """Atualiza as fontes a partir do FontManager."""
+        if hasattr(self.game, 'font_manager'):
+            self.font = self.game.font_manager.get_font()
+            self.result_font = self.game.font_manager.get_font()
+        else:
+            # Fallback caso o FontManager não esteja disponível
+            try:
+                self.font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
+                self.result_font = pygame.font.Font("assets/fonts/MinecraftStandard.otf", 6)
+            except:
+                self.font = pygame.font.SysFont("arial", 30)
+                self.result_font = pygame.font.SysFont("arial", 60)
 
     # -------------------------------------------------------------------------
     # SISTEMA DE CARREGAMENTO DE IMAGENS
@@ -166,6 +182,9 @@ class Fase1State:
                     self.game.state_manager.set_state("menu")
 
     def update(self):
+        # Atualiza fontes caso tenham mudado
+        self._update_fonts()
+        
         # Atualiza animação da vaca
         now = pygame.time.get_ticks()
         if now - self.last_cow_update > self.cow_animation_speed:
@@ -240,7 +259,14 @@ class Fase1State:
 
         self._draw_phase_zone_info(screen)
 
-    def draw_text_justified(self, surface, text, font, color, rect, line_spacing=1):
+    def draw_text_justified(self, surface, text, font, color, rect, line_spacing=None):
+        # Se line_spacing não foi fornecido, pegar do FontManager
+        if line_spacing is None:
+            if hasattr(self.game, 'font_manager'):
+                line_spacing = self.game.font_manager.get_line_spacing()
+            else:
+                line_spacing = 1
+        
         words = text.split()
         space_w, _ = font.size(" ")
         lines = []

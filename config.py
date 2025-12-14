@@ -6,8 +6,8 @@ FPS = 60
 # Cores
 BRANCO = (255, 255, 255)
 PRETO = (0, 0, 0)
-VERMELHO = (255, 0, 0)
+VERMELHO = (0, 0, 255)
 VERDE = (0, 255, 0)
-AZUL = (0, 0, 255)
+AZUL = (255, 0, 0)
 CINZA = (255, 0, 255)
 AMARELO = (255, 255, 0)
