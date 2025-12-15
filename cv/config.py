@@ -10,7 +10,7 @@ from config import *
 # ================================
 CAMERA_WIDTH = 1280
 CAMERA_HEIGHT = 720
-CAMERA_INDEX = 1
+CAMERA_INDEX = 0
 
 # ================================
 # CONFIGURAÇÕES DO MEDIAPIPE - GESTOS
@@ -143,7 +143,7 @@ FONT_SIZES = {
     "large_font": {
         "path": "assets/fonts/aurora-24.ttf",
         "size": 9,
-        "line_spacing":-6,
+        "line_spacing":-7,
         "description": "Fonte grande - Aurora 9px"
     },
 }
@@ -359,18 +359,16 @@ TUTORIAL_STATES = [
     "cutscene1",
     "cutscene2",
     "cutscene3",
-    "cutscene4_tutorial",
-    "cutscene5_tutorial_pratico",
-    "cutscene6_inicio_missoes",
+    "cutscene4",
+    "cutscene5"
 ]
 
 TUTORIAL_ORDER = [
     "cutscene1",
     "cutscene2",
     "cutscene3",
-    "cutscene4_tutorial",
-    "cutscene5_tutorial_pratico",
-    "cutscene6_inicio_missoes",
+    "cutscene4",
+    "cutscene5"
 ]
 
 SCREEN_ZONES = {
@@ -378,9 +376,8 @@ SCREEN_ZONES = {
     "cutscene1": TUTORIAL_ZONES,
     "cutscene2": TUTORIAL_ZONES,
     "cutscene3": TUTORIAL_ZONES,
-    "cutscene4_tutorial": TUTORIAL_ZONES,
-    "cutscene5_tutorial_pratico": TUTORIAL_ZONES,
-    "cutscene6_inicio_missoes": TUTORIAL_ZONES,
+    "cutscene4": TUTORIAL_ZONES,
+    "cutscene5": TUTORIAL_ZONES,
     # Fase 1 com duas zonas de gestos
     "fase1": [
         {

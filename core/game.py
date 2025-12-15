@@ -4,15 +4,12 @@ from core.state_manager import StateManager
 from states.cutscene1 import Cutscene1
 from states.cutscene2 import Cutscene2
 from states.cutscene3 import Cutscene3
-from states.cutscene4_tutorial import Cutscene4_Tutorial
-from states.cutscene5_tutorial_pratico import Cutscene5_TutorialPratico
-from states.cutscene6_inicio_missoes import Cutscene6_InicioMissoes
 from core.brightness_overlay import BrightnessOverlay
 from core.audio_manager import AudioManager
 from core.color_filter import ColorFilter
 from core.font_manager import FontManager
-from states.menu import MenuState
-from states.tutorial import TutorialState
+from states.cutscene4 import Cutscene4
+from states.cutscene5 import Cutscene5
 from states.primeiraFaseState import Fase1State
 
 from cv.config import (
@@ -74,9 +71,8 @@ class Game:
         self.state_manager.add_state("cutscene1", Cutscene1(self))
         self.state_manager.add_state("cutscene2", Cutscene2(self))
         self.state_manager.add_state("cutscene3", Cutscene3(self))
-        self.state_manager.add_state("cutscene4_tutorial", Cutscene4_Tutorial(self))
-        self.state_manager.add_state("cutscene5_tutorial_pratico", Cutscene5_TutorialPratico(self))
-        self.state_manager.add_state("cutscene6_inicio_missoes", Cutscene6_InicioMissoes(self))
+        self.state_manager.add_state("cutscene4", Cutscene4(self))
+        self.state_manager.add_state("cutscene5", Cutscene5(self))
         self.state_manager.add_state("fase1", Fase1State(self))
 
         self.state_manager.set_state("cutscene1")

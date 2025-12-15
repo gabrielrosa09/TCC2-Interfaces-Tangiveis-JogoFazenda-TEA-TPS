@@ -243,7 +243,9 @@ class ActionHandler:
             details_str += f"[{z_name}: {val_str}] "
 
         # Monta a string final
-        full_msg = f"{message} Detalhes: {details_str}"
+        full_msg = f"{message}"
+
+        print(f"Detalhes: {details_str}")
 
         # Se for sucesso, adiciona parabéns
         if success:

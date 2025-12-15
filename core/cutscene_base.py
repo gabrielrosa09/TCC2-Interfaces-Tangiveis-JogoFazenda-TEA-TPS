@@ -3,12 +3,16 @@ from config import *
 
 class CutsceneBase:
     def __init__(self, game, text, next_state, background=None, typing_speed=40, fade_duration=1000):
-
         self.game = game
         self.text = text
         self.next_state = next_state
-        self.background = background
-        
+
+        # background pode ser Surface ou caminho (str). Se for str, carregar e escalar.
+        if isinstance(background, str) and background:
+            self.background = self._load_background(background)
+        else:
+            self.background = background
+
         # Usar fonte do FontManager
         self.font = None
         self._update_font()
@@ -27,6 +31,10 @@ class CutsceneBase:
 
         self.margin = 4
         self.line_spacing = 9
+        # Marca o último momento em que esta cutscene esteve ativa (para detectar reentrada)
+        self._last_seen_active = pygame.time.get_ticks()
+        # Flag interna para forçar reset na próxima ativação, se necessário
+        self._needs_reset_on_reenter = False
 
     def _update_font(self):
         """Atualiza a fonte a partir do FontManager."""
@@ -41,6 +49,17 @@ class CutsceneBase:
             except:
                 self.font = pygame.font.SysFont("arial", 12)
                 self.line_spacing = 1
+
+    def _load_background(self, path):
+        """Carrega e escala o background para o tamanho da tela."""
+        try:
+            img = pygame.image.load(path).convert()
+            # Escala para caber exatamente na tela
+            img = pygame.transform.scale(img, (LARGURA, ALTURA))
+            return img
+        except Exception as e:
+            print(f"[CutsceneBase] Falha ao carregar background '{path}': {e}")
+            return None
 
     def wrap_text(self, text, max_width):
         # Remove quebras e cria quebras automáticas antes de falas
@@ -72,11 +91,35 @@ class CutsceneBase:
     def handle_events(self, events):
         pass
 
+    def reset_typewriter(self):
+        """Reinicia o efeito de digitação e o fade-in ao revisitar a cutscene."""
+        self.displayed_text = ""
+        self.char_index = 0
+        self.last_update = pygame.time.get_ticks()
+        # Reinicia fade-in
+        self.fade_alpha = 255
+        self.fading_in = True
+        self.fading_out = False
+        self.fade_start = pygame.time.get_ticks()
+        # Limpa a flag
+        self._needs_reset_on_reenter = False
+        # Atualiza marca de ativo
+        self._last_seen_active = pygame.time.get_ticks()
+
     def update(self):
         # Atualizar fonte caso tenha mudado
         self._update_font()
-        
         now = pygame.time.get_ticks()
+
+        # Detecta reentrada: se ficou tempo sem atualizar e o texto já estava completo, reinicia
+        # Isso cobre o caso em que a instância é reutilizada quando o jogador volta para ver a cutscene novamente
+        if self.char_index >= len(self.text):
+            # Se passou mais de 300ms desde a última vez ativa (indicando troca de estado)
+            if now - self._last_seen_active > 300:
+                self.reset_typewriter()
+
+        # Atualiza o momento ativo para esta frame
+        self._last_seen_active = now
 
         if self.fading_in:
             elapsed = now - self.fade_start
@@ -110,7 +153,7 @@ class CutsceneBase:
         }
 
         wrapped_lines = self.wrap_text(self.displayed_text, LARGURA)
-        y = int(ALTURA * 0.5)
+        y = int(ALTURA * 0.58)
 
         fala_atual = None  # mantém quem está falando
 
@@ -166,4 +209,3 @@ class CutsceneBase:
             fade_surface.fill(PRETO)
             fade_surface.set_alpha(self.fade_alpha)
             screen.blit(fade_surface, (0, 0))
-
